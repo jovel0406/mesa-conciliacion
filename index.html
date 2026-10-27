@@ -639,6 +639,168 @@ li[data-estado="rechazado"] .acuerdo input { border-left-color: #dc2626; }
   .acta-cabecera { flex-wrap: wrap; }
 }
 
+/* =====================================================================
+   ROLES NEUTRALES OPCIONALES · EQUIPO FACILITADOR
+   ===================================================================== */
+.bloque-neutral { margin-top: 1.4rem; border-top: 3px dashed var(--borde); padding-top: 1rem; }
+.titulo-caja .opcional {
+  font-size: .65rem; background: #000; color: var(--texto-suave); border: 2px solid #444; border-radius: 999px;
+  padding: .1rem .5rem; letter-spacing: .12em; text-shadow: none;
+}
+.selector-modo { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: .4rem 0 1rem; }
+.modo {
+  display: flex; flex-direction: column; align-items: center; gap: .2rem; text-align: center;
+  padding: .8rem .6rem; font-size: 1.7rem; color: var(--texto);
+  background: #1d2a55; border: 3px solid #000; border-radius: 14px; box-shadow: 4px 4px 0 #000;
+  transition: transform .1s;
+}
+.modo:hover { transform: translateY(-3px); }
+.modo b { font-size: 1rem; }
+.modo span { font-size: .82rem; color: var(--texto-suave); font-weight: 500; }
+.modo[aria-checked="true"] {
+  background: linear-gradient(#2d4285, #1d2a55); border-color: var(--dorado);
+  box-shadow: 0 0 0 3px var(--dorado), 5px 5px 0 #000;
+}
+.modo[aria-checked="true"]::after {
+  content: "▶ ELEGIDO"; font-family: var(--mono); font-size: .72rem; font-weight: 900; color: var(--dorado);
+  animation: parpadeo 1s steps(2, start) infinite;
+}
+.lista-facilitadores { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: .8rem; margin-bottom: .8rem; }
+.fac-fila {
+  display: grid; grid-template-columns: auto 1fr auto; gap: .3rem .7rem; align-items: center;
+  background: linear-gradient(135deg, #5b6474, #374151); border: 3px solid #000; border-radius: 14px;
+  padding: .6rem; box-shadow: 4px 4px 0 #000; animation: aparecerPop .35s;
+}
+.fac-sprite {
+  grid-row: 1 / span 2; display: grid; place-items: center; padding: 4px; border: 3px solid #000; border-radius: 10px;
+  background: conic-gradient(#d9dccf 25%, #c9ccbf 0 50%, #d9dccf 0 75%, #c9ccbf 0) 0 0 / 14px 14px;
+}
+.fac-etiqueta { font-family: var(--mono); font-size: .72rem; color: var(--dorado); letter-spacing: .12em; font-weight: 900; }
+.fac-nombre { font-weight: 900; font-size: 1.15rem; word-break: break-word; }
+.fac-fila select { grid-column: 2 / span 2; font-size: .95rem; padding: .4rem .5rem; }
+.cupo.facil { outline: 3px dashed var(--dorado); outline-offset: 2px; }
+
+/* =====================================================================
+   ACTA POR NIVELES: Intereses → Soluciones → Acuerdo
+   ===================================================================== */
+.niveles {
+  display: flex; align-items: center; gap: .45rem; flex-wrap: wrap;
+  margin: 1.3rem 0 .4rem; padding: .6rem; border: 3px solid #000; border-radius: 14px;
+  background: var(--marino); box-shadow: 4px 4px 0 #000;
+}
+.nivel-btn {
+  display: flex; align-items: center; gap: .45rem; padding: .4rem .7rem;
+  color: #cbd5f5; font-weight: 900; background: var(--marino-claro);
+  border: 3px solid #000; border-radius: 10px; box-shadow: 3px 3px 0 #000; transition: transform .1s;
+}
+.nivel-num {
+  width: 1.7rem; height: 1.7rem; display: grid; place-items: center; border-radius: 6px;
+  background: #000; color: var(--dorado); font-family: var(--mono);
+}
+.nivel-btn .estrella { font-style: normal; color: #3a4570; font-size: 1.1rem; }
+.nivel-btn.logrado .estrella { color: var(--dorado); text-shadow: 0 0 8px rgba(244,196,48,.9); animation: brillo 1.2s ease-in-out infinite; }
+.nivel-btn.activo { background: var(--dorado); color: #000; transform: translateY(-3px); }
+.nivel-btn.activo.logrado .estrella { color: #000; text-shadow: none; }
+.nivel-camino { flex: 1; min-width: 14px; height: 6px; background: repeating-linear-gradient(90deg, var(--dorado) 0 6px, transparent 6px 12px); }
+.puntaje { margin-left: auto; text-align: right; font-family: var(--mono); color: var(--dorado); line-height: 1; }
+.puntaje small { display: block; font-size: .62rem; letter-spacing: .22em; color: var(--texto-suave); }
+.puntaje b { display: inline-block; font-size: 1.5rem; text-shadow: 2px 2px 0 #000; }
+.puntaje b.sube { animation: subir .45s; }
+@keyframes subir { 50% { transform: scale(1.4); color: #fff; } }
+@keyframes brillo { 50% { opacity: .5; } }
+@keyframes aparecerPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: none; } }
+
+.acta:not(.ver-todo):not(.sellada) .etapa:not(.activa) { display: none; }
+.acta:not(.ver-todo):not(.sellada) .etapa.activa { animation: entrarEtapa .45s ease-out; }
+@keyframes entrarEtapa { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+.nav-etapas { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: 1.4rem; }
+.acta.sellada .nav-etapas { display: none; }
+
+/* Nivel 1: tres columnas de intereses */
+.intereses { display: grid; grid-template-columns: 1fr .85fr 1fr; gap: .9rem; }
+.col-int {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 3px solid #000; border-radius: 14px; box-shadow: 4px 4px 0 rgba(0,0,0,.85);
+}
+.col-int header {
+  display: flex; align-items: center; gap: .5rem; padding: .45rem .7rem; border-bottom: 3px solid #000;
+  color: #fff; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; text-shadow: 2px 2px 0 #000;
+}
+.col-int.gobierno header { background: repeating-linear-gradient(45deg, var(--azul-gob) 0 12px, var(--azul-gob-osc) 12px 24px); }
+.col-int.sindicato header { background: repeating-linear-gradient(45deg, var(--verde-sind) 0 12px, var(--verde-sind-osc) 12px 24px); }
+.col-int.comun header { background: repeating-linear-gradient(45deg, var(--dorado) 0 12px, var(--dorado-osc) 12px 24px); }
+.col-int header canvas { width: 40px; height: 40px; background: rgba(255,255,255,.3); border: 2px solid #000; border-radius: 6px; }
+.col-int ul { list-style: none; margin: 0; padding: .6rem; display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+.item-int {
+  display: flex; gap: .4rem; align-items: flex-start; padding: .35rem .5rem; font-weight: 600;
+  background: #f6f4ea; border: 2px solid #000; border-radius: 9px; animation: aparecerPop .3s;
+}
+.item-int .txt { flex: 1; word-break: break-word; }
+.etiqueta-tipo { flex: none; font-size: .68rem; font-weight: 900; padding: .05rem .4rem; border: 2px solid #000; border-radius: 6px; white-space: nowrap; }
+.etiqueta-tipo.interes { background: #fde68a; }
+.etiqueta-tipo.perspectiva { background: #c7d2fe; }
+.etiqueta-tipo.comun { background: #fef3c7; }
+.item-int button { border: none; background: none; cursor: pointer; font-size: .9rem; padding: 0 .1rem; }
+.col-int .agregar { display: flex; flex-direction: column; gap: .4rem; padding: .6rem; border-top: 2px dashed #cfc8b0; }
+.col-int .agregar .fila { flex-wrap: nowrap; }
+.col-int .agregar input[type="text"] { flex: 1; min-width: 0; width: auto; font-size: .95rem; padding: .45rem .55rem; }
+.col-int .agregar select { font-size: .9rem; padding: .35rem .5rem; }
+
+/* Nivel 2: soluciones con votos y "combos" */
+.soluciones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .7rem; counter-reset: sol; }
+.sol {
+  counter-increment: sol;
+  display: grid; grid-template-columns: auto 1fr auto; gap: .6rem; align-items: start;
+  padding: .6rem .7rem; background: #fff; border: 3px solid #000; border-radius: 12px; box-shadow: 3px 3px 0 #000;
+  animation: aparecerPop .3s;
+}
+.sol::before {
+  content: counter(sol); width: 1.9rem; height: 1.9rem; display: grid; place-items: center; border-radius: 6px;
+  font-family: var(--mono); font-weight: 900; background: var(--marino); color: var(--dorado);
+}
+.sol-texto { font-weight: 800; word-break: break-word; }
+.sol-autor { font-size: .75rem; font-weight: 800; color: #5b5340; margin-left: .3rem; white-space: nowrap; }
+.votos { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .4rem; }
+.voto { display: flex; align-items: center; gap: .25rem; padding: .15rem .35rem; border: 2px solid #000; border-radius: 9px; font-size: .75rem; font-weight: 900; }
+.voto.gobierno { background: #dbeafe; }
+.voto.sindicato { background: #e2f0cf; }
+.voto button { border: 2px solid #000; border-radius: 6px; background: #fff; padding: .05rem .3rem; font-size: 1rem; opacity: .4; cursor: pointer; }
+.voto button.on { opacity: 1; background: var(--dorado); box-shadow: 2px 2px 0 #000; }
+.voto button:disabled { cursor: default; }
+.sol.combo { border-color: var(--dorado-osc); background: linear-gradient(90deg, #fff6c9, #fff); box-shadow: 0 0 0 3px var(--dorado), 4px 4px 0 #000; }
+.sol.descartada { opacity: .55; }
+.sol.descartada .sol-texto { text-decoration: line-through; }
+.sol.llevada { background: #ecfdf5; border-color: #15803d; }
+.combo-tag { font-family: var(--mono); font-weight: 900; color: #b45309; animation: comboColor .5s steps(2) infinite; }
+@keyframes comboColor { 50% { color: #dc2626; } }
+.estado-sol { font-size: .8rem; font-weight: 900; }
+
+/* Cartel "NIVEL N" que cruza la pantalla al pasar de etapa */
+.banner-nivel {
+  position: fixed; inset: 0; z-index: 450; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7rem;
+  background: rgba(5,8,20,.65); animation: bannerFondo 1.8s forwards;
+}
+.bn-nivel { font-family: var(--mono); font-weight: 900; font-size: clamp(3rem, 12vw, 8rem); letter-spacing: .1em; color: var(--dorado); text-shadow: 6px 6px 0 #000; animation: bannerCruza 1.8s cubic-bezier(.2,.9,.3,1.2) both; }
+.bn-titulo { font-weight: 900; font-size: clamp(1.1rem, 4vw, 2.3rem); color: #fff; background: #000; padding: .3rem 1rem; border: 3px solid var(--dorado); border-radius: 10px; animation: bannerCruza 1.8s .08s cubic-bezier(.2,.9,.3,1.2) both; text-align: center; }
+.bn-sprites { display: flex; gap: 1.2rem; animation: bannerCruza 1.8s .16s cubic-bezier(.2,.9,.3,1.2) both; }
+.bn-sprites canvas { width: 80px; height: 80px; }
+@keyframes bannerCruza { 0% { transform: translateX(-120vw); } 22%, 78% { transform: none; } 100% { transform: translateX(120vw); } }
+@keyframes bannerFondo { 0%, 100% { opacity: 0; } 12%, 88% { opacity: 1; } }
+
+@media print {
+  .etapa { display: block !important; animation: none !important; }
+  .intereses { grid-template-columns: 1fr 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .intereses { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .selector-modo { grid-template-columns: 1fr; }
+  .puntaje { margin-left: 0; width: 100%; text-align: center; }
+  .nivel-camino { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
@@ -708,6 +870,24 @@ li[data-estado="rechazado"] .acuerdo input { border-left-color: #dc2626; }
           <div class="fila" style="margin-top:.7rem">
             <button class="btn btn-chico btn-rojo" id="btn-vaciar">🗑 Vaciar lista</button>
           </div>
+        </div>
+      </div>
+
+      <div class="bloque-neutral">
+        <h2 class="titulo-caja">⚖️ Roles neutrales <span class="opcional">OPCIONAL</span></h2>
+        <p class="ayuda">Conciliador/a, Relator/a de Actas, Observador/a, Periodista… ¿Quién los asume?</p>
+        <div class="selector-modo" role="radiogroup" aria-label="Quién asume los roles neutrales">
+          <button class="modo" type="button" role="radio" data-modo="facilitadores">🎙️<b>Equipo facilitador</b><span>Quienes presentan la actividad toman los roles neutrales</span></button>
+          <button class="modo" type="button" role="radio" data-modo="sorteo">🎲<b>Sortearlos</b><span>Entran al sorteo junto con los estudiantes</span></button>
+          <button class="modo" type="button" role="radio" data-modo="ninguno">🚫<b>Sin neutrales</b><span>Solo Gobierno vs. Sindicato</span></button>
+        </div>
+        <div id="panel-facilitadores" class="oculto">
+          <div class="lista-facilitadores" id="lista-facilitadores"></div>
+          <div class="fila">
+            <input type="text" id="input-facilitador" maxlength="40" placeholder="Nombre de quien facilita" autocomplete="off" aria-label="Nombre de quien facilita">
+            <button class="btn btn-azul" id="btn-agregar-facilitador">+ Sumar al equipo</button>
+          </div>
+          <p class="mensaje" id="mensaje-facilitador" role="status" aria-live="polite"></p>
         </div>
       </div>
       <div class="cta-inicio">
@@ -794,28 +974,70 @@ li[data-estado="rechazado"] .acuerdo input { border-left-color: #dc2626; }
         </label>
       </div>
 
-      <h3>Acuerdos <small id="acta-resumen"></small></h3>
-      <ol class="acta-acuerdos" id="acta-acuerdos"></ol>
-      <div class="no-imprimir" id="acta-editar-acuerdos">
-        <div class="fila nuevo-acuerdo">
-          <input type="text" id="acta-nuevo" maxlength="200" placeholder="Ej.: Aumento salarial del 8% a partir de marzo" aria-label="Texto del nuevo acuerdo">
-          <select id="acta-nuevo-estado" aria-label="Estado del nuevo acuerdo"></select>
-          <button class="btn btn-verde btn-chico" id="btn-acta-agregar">+ Agregar</button>
+      <nav class="niveles no-imprimir" id="acta-niveles" aria-label="Niveles de la negociación">
+        <button class="nivel-btn" type="button" data-etapa="1"><span class="nivel-num">1</span>Intereses<i class="estrella" aria-hidden="true">★</i></button>
+        <span class="nivel-camino" aria-hidden="true"></span>
+        <button class="nivel-btn" type="button" data-etapa="2"><span class="nivel-num">2</span>Soluciones<i class="estrella" aria-hidden="true">★</i></button>
+        <span class="nivel-camino" aria-hidden="true"></span>
+        <button class="nivel-btn" type="button" data-etapa="3"><span class="nivel-num">3</span>Acuerdo<i class="estrella" aria-hidden="true">★</i></button>
+        <div class="puntaje" title="Puntos de consenso: suben con cada interés, idea, combo y acuerdo"><small>PUNTOS DE CONSENSO</small><b id="acta-puntaje">000000</b></div>
+      </nav>
+
+      <section class="etapa" data-etapa="1">
+        <h3><span>🔎 Nivel 1 · Intereses y perspectivas</span> <small id="acta-resumen-int"></small></h3>
+        <p class="ayuda no-imprimir">Antes de pedir, entender: un <b>interés</b> es lo que de verdad necesita cada bando y por qué; una <b>perspectiva</b> es cómo ve el conflicto. Al centro, lo que comparten.</p>
+        <div class="intereses" id="acta-intereses"></div>
+      </section>
+
+      <section class="etapa" data-etapa="2">
+        <h3><span>🛠️ Nivel 2 · Construcción de soluciones</span> <small id="acta-resumen-sol"></small></h3>
+        <p class="ayuda no-imprimir">Lluvia de ideas que respondan a los intereses de ambos. Luego cada bando vota 👍 o 👎: con doble 👍 hay <b>COMBO</b> y la idea puede pasar al acuerdo.</p>
+        <ol class="soluciones" id="acta-soluciones"></ol>
+        <div class="no-imprimir" id="acta-editar-soluciones">
+          <div class="fila nuevo-acuerdo">
+            <input type="text" id="acta-nueva-sol" maxlength="200" placeholder="Ej.: Aumento escalonado: 5% ahora y 4% en seis meses" aria-label="Nueva propuesta de solución">
+            <select id="acta-sol-autor" aria-label="Quién propone">
+              <option value="gobierno">Propone: Gobierno</option>
+              <option value="sindicato">Propone: Sindicato</option>
+              <option value="ambos">Propone: Ambos</option>
+              <option value="mediacion">Propone: Mediación</option>
+            </select>
+            <button class="btn btn-verde btn-chico" id="btn-acta-sol">+ Proponer</button>
+          </div>
+          <button class="btn btn-chico oculto" id="btn-acta-escenario" style="margin-top:.6rem">⤵ Cargar las posiciones del escenario sorteado como propuestas</button>
         </div>
-        <button class="btn btn-chico oculto" id="btn-acta-escenario" style="margin-top:.6rem">⤵ Cargar las demandas del escenario sorteado</button>
-      </div>
+      </section>
 
-      <h3>Observaciones</h3>
-      <textarea id="acta-obs" maxlength="1500" placeholder="Compromisos de seguimiento, plazos, quién vigila el cumplimiento, puntos que quedan para una próxima mesa…" aria-label="Observaciones"></textarea>
+      <section class="etapa" data-etapa="3">
+        <h3><span>🤝 Nivel 3 · Acuerdo</span> <small id="acta-resumen"></small></h3>
+        <p class="ayuda no-imprimir">Redacten los compromisos finales. Las ideas con COMBO del nivel 2 llegan aquí solas.</p>
+        <ol class="acta-acuerdos" id="acta-acuerdos"></ol>
+        <div class="no-imprimir" id="acta-editar-acuerdos">
+          <div class="fila nuevo-acuerdo">
+            <input type="text" id="acta-nuevo" maxlength="200" placeholder="Ej.: Aumento salarial del 8% a partir de marzo" aria-label="Texto del nuevo acuerdo">
+            <select id="acta-nuevo-estado" aria-label="Estado del nuevo acuerdo"></select>
+            <button class="btn btn-verde btn-chico" id="btn-acta-agregar">+ Agregar</button>
+          </div>
+        </div>
 
-      <div class="sello oculto" id="acta-sello" aria-live="polite"></div>
+        <h3>Observaciones</h3>
+        <textarea id="acta-obs" maxlength="1500" placeholder="Compromisos de seguimiento, plazos, quién vigila el cumplimiento, puntos que quedan para una próxima mesa…" aria-label="Observaciones"></textarea>
 
-      <h3>Firmas</h3>
-      <p class="ayuda no-imprimir" id="acta-ayuda-firmas">Cada firmante firma sobre la línea con el dedo, el lápiz o el mouse.</p>
-      <div class="firmas" id="acta-firmas"></div>
-      <div class="fila agregar-firmante no-imprimir" id="acta-agregar-firmante">
-        <select id="acta-sel-firmante" aria-label="Elegir firmante"></select>
-        <button class="btn btn-chico btn-azul" id="btn-acta-firmante">+ Agregar firmante</button>
+        <div class="sello oculto" id="acta-sello" aria-live="polite"></div>
+
+        <h3>Firmas</h3>
+        <p class="ayuda no-imprimir" id="acta-ayuda-firmas">Cada firmante firma sobre la línea con el dedo, el lápiz o el mouse.</p>
+        <div class="firmas" id="acta-firmas"></div>
+        <div class="fila agregar-firmante no-imprimir" id="acta-agregar-firmante">
+          <select id="acta-sel-firmante" aria-label="Elegir firmante"></select>
+          <button class="btn btn-chico btn-azul" id="btn-acta-firmante">+ Agregar firmante</button>
+        </div>
+      </section>
+
+      <div class="nav-etapas no-imprimir">
+        <button class="btn" type="button" id="btn-etapa-ant">◀ Nivel anterior</button>
+        <button class="btn btn-chico btn-oscuro" type="button" id="btn-ver-todo" aria-pressed="false">👁 Ver todo el acta</button>
+        <button class="btn btn-oro" type="button" id="btn-etapa-sig">Siguiente nivel ▶</button>
       </div>
 
     </article>
@@ -1214,6 +1436,8 @@ const estado = {
   tension: 2,
   fase: 0,
   mazoCartas: [],
+  modoNeutral: 'sorteo', // 'sorteo' | 'facilitadores' | 'ninguno'
+  facilitadores: [],     // [{nombre, rolId}] quienes presentan la actividad
   acta: actaVacia()      // acta de negociación (acuerdos + firmas)
 };
 
@@ -1223,7 +1447,8 @@ function clonar(obj) { return JSON.parse(JSON.stringify(obj)); }
 function guardar() {
   try {
     localStorage.setItem(CLAVE_ALMACEN, JSON.stringify({
-      participantes: estado.participantes, roles: estado.roles, sonido: estado.sonido, acta: estado.acta
+      participantes: estado.participantes, roles: estado.roles, sonido: estado.sonido, acta: estado.acta,
+      modoNeutral: estado.modoNeutral, facilitadores: estado.facilitadores
     }));
   } catch (e) { /* sin almacenamiento: la app sigue funcionando en memoria */ }
 }
@@ -1235,6 +1460,8 @@ function cargar() {
     if (Array.isArray(datos.participantes)) estado.participantes = datos.participantes.filter(n => typeof n === 'string').slice(0, MAX_PARTICIPANTES);
     if (Array.isArray(datos.roles) && datos.roles.length) estado.roles = datos.roles;
     if (typeof datos.sonido === 'boolean') estado.sonido = datos.sonido;
+    if (['sorteo', 'facilitadores', 'ninguno'].includes(datos.modoNeutral)) estado.modoNeutral = datos.modoNeutral;
+    if (Array.isArray(datos.facilitadores)) estado.facilitadores = datos.facilitadores.filter(f => f && typeof f.nombre === 'string');
     if (datos.acta && Array.isArray(datos.acta.acuerdos) && Array.isArray(datos.acta.firmantes)) estado.acta = Object.assign(actaVacia(), datos.acta);
   } catch (e) { /* datos corruptos o sin acceso: se usan los valores por defecto */ }
 }
@@ -1396,9 +1623,11 @@ function renderInicio() {
     : (n === 1 ? 'Falta 1 participante más para comenzar.' : 'Agrega al menos 2 participantes para comenzar.');
   $('#btn-volver-resultados').classList.toggle('oculto', !estado.asignaciones.length);
   actualizarHud();
+  renderNeutral();
 }
 
-function totalRolesDefinidos() { return estado.roles.length; }
+/** Roles que entran al sorteo (los neutrales solo si el modo es "sorteo"). */
+function totalRolesDefinidos() { return estado.roles.filter(r => estado.modoNeutral === 'sorteo' || r.bando !== 'neutral').length; }
 
 function actualizarHud() {
   $('#hud').textContent = 'JUGADORES ' + String(estado.participantes.length).padStart(2, '0');
@@ -1425,18 +1654,22 @@ function renderArena() {
   // El sindicato mira hacia el gobierno: lo reflejamos horizontalmente
   sind.querySelectorAll('canvas').forEach(c => { c.style.transform = 'scaleX(-1)'; });
   const centro = crear('div', 'lado');
-  const neutral = estado.roles.find(r => r.bando === 'neutral');
-  if (neutral) {
-    const col = crear('div');
-    col.style.cssText = 'display:flex;flex-direction:column;align-items:center';
-    const c = dibujarSprite(neutral.sprite, window.innerWidth < 600 ? 44 : 72);
+  // Al centro: el equipo facilitador, un neutral sorteable o la mesa vacía
+  let neutrales = [];
+  if (estado.modoNeutral === 'facilitadores') neutrales = asignacionesFacilitadores().map(a => a.rol).slice(0, 3);
+  else if (estado.modoNeutral === 'sorteo') neutrales = estado.roles.filter(r => r.bando === 'neutral').slice(0, 1);
+  const col = crear('div');
+  col.style.cssText = 'display:flex;flex-direction:column;align-items:center';
+  const fila = crear('div', 'lado');
+  neutrales.forEach((r, i) => {
+    const c = dibujarSprite(r.sprite, window.innerWidth < 600 ? 44 : 72);
     c.classList.add('sprite-salta');
-    col.appendChild(c);
-    col.appendChild(crear('div', 'mesa-pixel'));
-    centro.appendChild(col);
-  } else {
-    centro.appendChild(crear('div', 'mesa-pixel'));
-  }
+    c.style.animationDelay = (i * .3) + 's';
+    c.title = r.nombre;
+    fila.appendChild(c);
+  });
+  col.append(fila, crear('div', 'mesa-pixel'));
+  centro.appendChild(col);
   arena.append(gob, centro, sind);
 }
 
@@ -1446,7 +1679,8 @@ function renderArena() {
    con un neutral cada dos parejas → relleno equilibrado por bando.
    ===================================================================== */
 function seleccionarRoles(n) {
-  const roles = estado.roles.map(r => Object.assign({}, r));
+  const incluirNeutrales = estado.modoNeutral === 'sorteo';
+  const roles = estado.roles.filter(r => incluirNeutrales || r.bando !== 'neutral').map(r => Object.assign({}, r));
   const elegidos = [];
   const usados = new Set();
   const tomar = r => { if (r && !usados.has(r) && elegidos.length < n) { usados.add(r); elegidos.push(r); } };
@@ -1495,10 +1729,21 @@ function renderSorteo() {
   const n = estado.participantes.length;
   const roles = seleccionarRoles(n);
   const cuenta = contarBandos(roles);
+  const facil = asignacionesFacilitadores();
+  const textoNeutral = estado.modoNeutral === 'facilitadores'
+    ? `${facil.length} en el equipo facilitador`
+    : (estado.modoNeutral === 'ninguno' ? 'sin roles neutrales' : `${cuenta.neutral} Neutral`);
   $('#resumen-sorteo').textContent =
-    `${n} jugadores · ${cuenta.gobierno} Gobierno · ${cuenta.sindicato} Sindicato · ${cuenta.neutral} Neutral. Estos son los roles en juego:`;
+    `${n} jugadores · ${cuenta.gobierno} Gobierno · ${cuenta.sindicato} Sindicato · ${textoNeutral}. Estos son los roles en juego:`;
   const vp = $('#vista-previa');
   vp.replaceChildren();
+  // El equipo facilitador ya tiene su rol: no entra al sorteo
+  facil.forEach(a => {
+    const cupo = crear('span', 'cupo neutral facil');
+    cupo.appendChild(dibujarSprite(a.rol.sprite));
+    cupo.appendChild(crear('span', '', `🎙️ ${a.nombre} · ${a.rol.nombre}`));
+    vp.appendChild(cupo);
+  });
   roles.forEach(r => {
     const cupo = crear('span', 'cupo ' + r.bando);
     cupo.appendChild(dibujarSprite(r.sprite));
@@ -1520,8 +1765,9 @@ function asignarRoles() {
   const roles = seleccionarRoles(n);
   const mezclados = fisherYates(estado.participantes);
   const pares = mezclados.map((nombre, i) => ({ nombre, rol: roles[i] }));
-  // El orden de revelación también es aleatorio, para mantener el suspenso
-  estado.asignaciones = fisherYates(pares);
+  // El orden de revelación también es aleatorio, para mantener el suspenso.
+  // El equipo facilitador se presenta primero.
+  estado.asignaciones = asignacionesFacilitadores().concat(fisherYates(pares));
   estado.revelados = 0;
   if (!estado.acta.sellada) { estado.acta.firmantes = []; guardar(); }
   actualizarMarcador();
@@ -1578,7 +1824,7 @@ function crearTarjeta(asig, variante) {
 
   const franja = crear('div', 'franja');
   franja.appendChild(crear('span', '', `${ICONO_BANDO[r.bando]} Bando ${ETIQUETA_BANDO[r.bando]}`));
-  franja.appendChild(crear('span', 'insignia', r.relleno ? 'Refuerzo' : (r.esencial ? '★ Clave' : 'Rol')));
+  franja.appendChild(crear('span', 'insignia', asig.facilitador ? '🎙️ Facilitación' : (r.relleno ? 'Refuerzo' : (r.esencial ? '★ Clave' : 'Rol'))));
   t.appendChild(franja);
 
   const cuerpo = crear('div', 'cuerpo');
@@ -1974,6 +2220,9 @@ function actaVacia() {
   return {
     numero: String(1 + enteroAleatorio(999)).padStart(3, '0'),
     caso: '', fecha: hoyISO(), lugar: '', acuerdos: [], obs: '',
+    etapa: 1,
+    intereses: { gobierno: [], comun: [], sindicato: [] },
+    soluciones: [],
     firmantes: [], sellada: false, resultado: '', selladaEn: ''
   };
 }
@@ -2018,6 +2267,8 @@ function renderActa() {
     const campo = $('#acta-' + k);
     campo.value = acta[k] || '';
     campo.disabled = sellada;
+    if (campo.dataset.placeholder === undefined) campo.dataset.placeholder = campo.placeholder || '';
+    campo.placeholder = sellada ? '' : campo.dataset.placeholder; // sin "Ej.: …" en el acta sellada
   });
   const obs = $('#acta-obs');
   obs.value = acta.obs || '';
@@ -2056,6 +2307,7 @@ function renderActa() {
   pintarResumenActa();
   $('#acta-editar-acuerdos').classList.toggle('oculto', sellada);
   $('#btn-acta-escenario').classList.toggle('oculto', !escenarioActual);
+  $('#acta-editar-soluciones').classList.toggle('oculto', sellada);
 
   // --- Firmas ---
   const firmas = $('#acta-firmas');
@@ -2088,9 +2340,12 @@ function renderActa() {
   } else {
     sello.className = 'sello oculto';
   }
-  $('#btn-acta-sellar').classList.toggle('oculto', sellada);
+  $('#btn-acta-sellar').classList.toggle('oculto', sellada || (!actaVerTodo && acta.etapa !== 3));
   $('#btn-acta-reabrir').classList.toggle('oculto', !sellada);
   $('#btn-acta-volver').textContent = estado.asignaciones.length ? '↩ Volver a la mesa' : '↩ Volver al inicio';
+  renderNiveles();
+  renderIntereses();
+  renderSoluciones();
 }
 
 function selectorEstado(valor) {
@@ -2111,6 +2366,7 @@ function pintarResumenActa() {
     ? [[c.acordado, 'acordado', 'acordados'], [c.parcial, 'parcial', 'parciales'], [c.pendiente, 'pendiente', 'pendientes'], [c.rechazado, 'sin acuerdo', 'sin acuerdo']]
         .map(([n, uno, varios]) => `${n} ${n === 1 ? uno : varios}`).join(' · ')
     : '';
+  pintarPuntaje();
 }
 
 /** Tarjeta de firma con un canvas donde se dibuja a mano alzada. */
@@ -2216,7 +2472,10 @@ function sellarActa() {
     SONIDOS.error();
     return;
   }
-  if (!confirm('¿Cerrar y sellar el acta? Ya no se podrá editar (salvo que la reabras).')) return;
+  const avisos = ['gobierno', 'sindicato']
+    .filter(b => !acta.intereses[b].length)
+    .map(b => 'no se registraron intereses del ' + ETIQUETA_BANDO[b]);
+  if (!confirm((avisos.length ? 'Ojo: ' + avisos.join(' y ') + '.\n\n' : '') + '¿Cerrar y sellar el acta? Ya no se podrá editar (salvo que la reabras).')) return;
   acta.sellada = true;
   acta.resultado = acta.acuerdos.some(a => a.estado === 'acordado' || a.estado === 'parcial') ? 'acuerdo' : 'desacuerdo';
   acta.selladaEn = new Date().toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' });
@@ -2259,11 +2518,13 @@ $('#btn-acta-escenario').addEventListener('click', () => {
   if (!escenarioActual) return;
   const acta = estado.acta;
   if (!acta.caso) acta.caso = escenarioActual.t;
-  escenarioActual.dem.forEach(d => {
-    if (!acta.acuerdos.some(a => a.texto === d)) acta.acuerdos.push({ texto: d, estado: 'pendiente' });
-  });
+  const agregar = (texto, autor) => {
+    if (!acta.soluciones.some(x => x.texto === texto)) acta.soluciones.push(nuevaSolucion(texto, autor));
+  };
+  escenarioActual.dem.forEach(d => agregar(d, 'sindicato'));
+  agregar(escenarioActual.of, 'gobierno');
   guardar(); renderActa(); SONIDOS.carta();
-  avisar('📜 Demandas cargadas como "pendientes": cambien su estado según lo que se acuerde.', 4000);
+  avisar('📜 Posiciones cargadas: ahora busquen ideas que satisfagan los intereses de ambos.', 4000);
 });
 $('#btn-acta-firmante').addEventListener('click', () => {
   const nombre = $('#acta-sel-firmante').value;
@@ -2285,6 +2546,396 @@ $('#btn-acta-nueva').addEventListener('click', () => {
 });
 $('#btn-acta').addEventListener('click', () => { SONIDOS.clic(); irA('acta'); });
 $('#btn-ir-acta').addEventListener('click', () => { SONIDOS.clic(); irA('acta'); });
+
+/* =====================================================================
+   14c. ROLES NEUTRALES OPCIONALES · EQUIPO FACILITADOR
+   Quienes presentan la actividad pueden quedarse con los roles neutrales:
+   así no entran al sorteo y los estudiantes solo son Gobierno o Sindicato.
+   ===================================================================== */
+const ROL_FACILITACION = {
+  id: 'facilitacion', nombre: 'Facilitador/a', bando: 'neutral',
+  descripcion: 'Guía la actividad: presenta las reglas, cuida los tiempos y ayuda a que la conversación avance.',
+  secreto: 'Lograr que todos los estudiantes hablen al menos una vez.',
+  sprite: { piel: '#f1c27d', pelo: '#2b1b0e', peinado: 'largo', ropa: '#57534e', acento: '#f4c430', pantalon: '#27272a', zapatos: '#1f1f1f', accesorios: ['microfono'] }
+};
+
+function rolesNeutrales() { return estado.roles.filter(r => r.bando === 'neutral'); }
+
+/** Convierte al equipo facilitador en asignaciones, sin repetir roles. */
+function asignacionesFacilitadores() {
+  if (estado.modoNeutral !== 'facilitadores') return [];
+  const neutrales = rolesNeutrales();
+  const usados = new Set();
+  return estado.facilitadores.map(f => {
+    let rol = neutrales.find(r => r.id === f.rolId && !usados.has(r.id));
+    if (!rol) rol = neutrales.find(r => !usados.has(r.id)); // rol borrado o repetido: el siguiente libre
+    if (rol) usados.add(rol.id);
+    return { nombre: f.nombre, rol: Object.assign({}, rol || ROL_FACILITACION), facilitador: true };
+  });
+}
+
+function renderNeutral() {
+  document.querySelectorAll('.modo').forEach(b => b.setAttribute('aria-checked', String(b.dataset.modo === estado.modoNeutral)));
+  $('#panel-facilitadores').classList.toggle('oculto', estado.modoNeutral !== 'facilitadores');
+  const lista = $('#lista-facilitadores');
+  lista.replaceChildren();
+  const neutrales = rolesNeutrales();
+  if (!estado.facilitadores.length) {
+    lista.appendChild(crear('p', 'vacio', 'Escribe abajo el nombre de cada persona que presenta la actividad.'));
+  }
+  const asignadas = asignacionesFacilitadores();
+  estado.facilitadores.forEach((f, i) => {
+    const rol = asignadas[i] ? asignadas[i].rol : ROL_FACILITACION;
+    f.rolId = rol.id; // deja guardado el rol efectivo
+    const tarjeta = crear('div', 'fac-fila');
+    const marco = crear('div', 'fac-sprite');
+    const sprite = dibujarSprite(rol.sprite, 56);
+    sprite.classList.add('sprite-salta');
+    marco.appendChild(sprite);
+    const info = crear('div');
+    info.append(crear('div', 'fac-etiqueta', '🎙️ FACILITA ' + (i + 1)), crear('div', 'fac-nombre', f.nombre));
+    const quitar = crear('button', 'btn btn-chico btn-rojo', '✕');
+    quitar.setAttribute('aria-label', 'Quitar a ' + f.nombre + ' del equipo facilitador');
+    quitar.addEventListener('click', () => { estado.facilitadores.splice(i, 1); guardar(); renderInicio(); renderArena(); SONIDOS.clic(); });
+    const sel = crear('select');
+    sel.setAttribute('aria-label', 'Rol neutral de ' + f.nombre);
+    (neutrales.length ? neutrales : [ROL_FACILITACION]).forEach(r => {
+      const op = crear('option', '', r.nombre);
+      op.value = r.id;
+      if (r.id === rol.id) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.addEventListener('change', () => {
+      // Si otra persona ya tenía ese rol, intercambian
+      const otra = estado.facilitadores.find((x, j) => j !== i && x.rolId === sel.value);
+      if (otra) otra.rolId = f.rolId;
+      f.rolId = sel.value;
+      guardar(); renderInicio(); renderArena(); SONIDOS.moneda();
+    });
+    tarjeta.append(marco, info, quitar, sel);
+    lista.appendChild(tarjeta);
+  });
+  const lleno = estado.facilitadores.length >= Math.max(1, neutrales.length);
+  $('#input-facilitador').disabled = lleno;
+  $('#btn-agregar-facilitador').disabled = lleno;
+  $('#input-facilitador').placeholder = lleno ? 'No quedan roles neutrales libres' : 'Nombre de quien facilita';
+}
+
+function agregarFacilitador() {
+  const campo = $('#input-facilitador');
+  const msg = $('#mensaje-facilitador');
+  const nombre = campo.value.replace(/\s+/g, ' ').trim();
+  const clave = nombre.toLocaleLowerCase('es');
+  let error = '';
+  if (!nombre) error = 'Escribe un nombre primero.';
+  else if (estado.facilitadores.some(f => f.nombre.toLocaleLowerCase('es') === clave)) error = `"${nombre}" ya está en el equipo.`;
+  else if (estado.participantes.some(p => p.toLocaleLowerCase('es') === clave)) error = `"${nombre}" está en la lista de estudiantes: quítalo de ahí si va a facilitar.`;
+  if (error) { msg.className = 'mensaje error'; msg.textContent = '⚠ ' + error; SONIDOS.error(); campo.focus(); return; }
+  const usados = new Set(estado.facilitadores.map(f => f.rolId));
+  const libre = rolesNeutrales().find(r => !usados.has(r.id));
+  estado.facilitadores.push({ nombre, rolId: libre ? libre.id : ROL_FACILITACION.id });
+  campo.value = '';
+  msg.className = 'mensaje ok';
+  msg.textContent = `✔ ${nombre} se suma como ${libre ? libre.nombre : ROL_FACILITACION.nombre}. Puedes cambiar el rol en su tarjeta.`;
+  guardar(); renderInicio(); renderArena(); SONIDOS.moneda();
+  campo.focus();
+}
+
+document.querySelectorAll('.modo').forEach(b => b.addEventListener('click', () => {
+  estado.modoNeutral = b.dataset.modo;
+  guardar(); renderInicio(); renderArena(); SONIDOS.moneda();
+  if (estado.modoNeutral === 'facilitadores' && !estado.facilitadores.length) $('#input-facilitador').focus();
+}));
+$('#btn-agregar-facilitador').addEventListener('click', agregarFacilitador);
+$('#input-facilitador').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregarFacilitador(); } });
+
+/* =====================================================================
+   14d. ACTA POR NIVELES: Intereses → Soluciones → Acuerdo
+   Como en un videojuego: cada nivel tiene su estrella y todo suma
+   "puntos de consenso".
+   ===================================================================== */
+const TITULOS_ETAPA = { 1: 'Intereses y perspectivas', 2: 'Construcción de soluciones', 3: 'Acuerdo' };
+const AUTORES = { gobierno: 'Gobierno', sindicato: 'Sindicato', ambos: 'Ambos bandos', mediacion: 'Mediación' };
+let actaVerTodo = false;     // muestra los tres niveles a la vez
+let puntajeMostrado = null;  // para animar solo cuando el puntaje sube
+
+function nuevaSolucion(texto, autor) {
+  return { texto, autor, votos: { gobierno: null, sindicato: null }, llevada: false };
+}
+const esCombo = sol => sol.votos.gobierno === true && sol.votos.sindicato === true;
+const esDescartada = sol => sol.votos.gobierno === false || sol.votos.sindicato === false;
+
+function nivelLogrado(etapa) {
+  const a = estado.acta;
+  if (etapa === 1) return a.intereses.gobierno.length > 0 && a.intereses.sindicato.length > 0;
+  if (etapa === 2) return a.soluciones.some(esCombo);
+  return a.sellada && a.resultado === 'acuerdo';
+}
+
+function calcularPuntaje() {
+  const a = estado.acta;
+  const valorAcuerdo = { acordado: 100, parcial: 50 };
+  return (a.intereses.gobierno.length + a.intereses.sindicato.length) * 10
+    + a.intereses.comun.length * 25
+    + a.soluciones.length * 15
+    + a.soluciones.filter(esCombo).length * 50
+    + a.acuerdos.reduce((suma, ac) => suma + (valorAcuerdo[ac.estado] || 0), 0)
+    + (a.sellada && a.resultado === 'acuerdo' ? 500 : 0);
+}
+
+function pintarPuntaje() {
+  const puntos = calcularPuntaje();
+  const el = $('#acta-puntaje');
+  el.textContent = String(puntos).padStart(6, '0');
+  if (puntajeMostrado !== null && puntos > puntajeMostrado) {
+    el.classList.remove('sube'); void el.offsetWidth; el.classList.add('sube');
+  }
+  puntajeMostrado = puntos;
+}
+
+function renderNiveles() {
+  const acta = estado.acta;
+  $('#acta').classList.toggle('ver-todo', actaVerTodo);
+  document.querySelectorAll('#acta .etapa').forEach(sec => sec.classList.toggle('activa', Number(sec.dataset.etapa) === acta.etapa));
+  document.querySelectorAll('.nivel-btn').forEach(b => {
+    const n = Number(b.dataset.etapa);
+    b.classList.toggle('activo', !actaVerTodo && n === acta.etapa);
+    b.classList.toggle('logrado', nivelLogrado(n));
+    b.setAttribute('aria-current', !actaVerTodo && n === acta.etapa ? 'step' : 'false');
+  });
+  $('#btn-etapa-ant').classList.toggle('oculto', actaVerTodo || acta.etapa === 1);
+  $('#btn-etapa-sig').classList.toggle('oculto', actaVerTodo || acta.etapa === 3);
+  $('#btn-etapa-sig').textContent = acta.etapa < 3 ? `Nivel ${acta.etapa + 1}: ${TITULOS_ETAPA[acta.etapa + 1]} ▶` : '';
+  $('#btn-ver-todo').textContent = actaVerTodo ? '🎮 Volver a los niveles' : '👁 Ver todo el acta';
+  $('#btn-ver-todo').setAttribute('aria-pressed', String(actaVerTodo));
+  pintarPuntaje();
+}
+
+/** Cambia de nivel; al avanzar, cruza la pantalla el cartel "NIVEL N". */
+function irAEtapa(n) {
+  const acta = estado.acta;
+  if (n < 1 || n > 3) return;
+  const avanza = n > acta.etapa;
+  if (avanza && acta.etapa === 1 && !nivelLogrado(1)) avisar('💡 Consejo: registren al menos un interés de cada bando antes de buscar soluciones.', 3500);
+  if (avanza && acta.etapa === 2 && !nivelLogrado(2)) avisar('💡 Aún no hay ninguna idea con COMBO (doble 👍). Pueden volver al nivel 2 cuando quieran.', 3500);
+  acta.etapa = n;
+  actaVerTodo = false;
+  guardar();
+  renderActa();
+  $('#acta').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (avanza) bannerNivel(n);
+  else SONIDOS.clic();
+}
+
+function bannerNivel(n) {
+  [523, 659, 784, 1047, 1319].forEach((f, i) => tono(f, .09, 'square', .045, i * .07));
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const banner = crear('div', 'banner-nivel');
+  banner.setAttribute('aria-hidden', 'true');
+  const sprites = crear('div', 'bn-sprites');
+  ['gobierno', 'neutral', 'sindicato'].forEach((bando, i) => {
+    const asig = estado.asignaciones.find(a => a.rol.bando === bando);
+    const rol = asig ? asig.rol : estado.roles.find(r => r.bando === bando);
+    if (!rol) return;
+    const c = dibujarSprite(rol.sprite);
+    c.classList.add('sprite-salta');
+    c.style.animationDelay = (i * .15) + 's';
+    if (bando === 'sindicato') c.style.transform = 'scaleX(-1)';
+    sprites.appendChild(c);
+  });
+  banner.append(crear('div', 'bn-nivel', 'NIVEL ' + n), crear('div', 'bn-titulo', TITULOS_ETAPA[n]), sprites);
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 1850);
+}
+
+/** Nivel 1: tres columnas (Gobierno · En común · Sindicato). */
+function renderIntereses() {
+  const acta = estado.acta;
+  const sellada = acta.sellada;
+  const cont = $('#acta-intereses');
+  cont.replaceChildren();
+  const columnas = [
+    { clave: 'gobierno', titulo: 'Gobierno', bando: 'gobierno' },
+    { clave: 'comun', titulo: 'En común', bando: 'neutral' },
+    { clave: 'sindicato', titulo: 'Sindicato', bando: 'sindicato' }
+  ];
+  columnas.forEach(col => {
+    const caja = crear('div', 'col-int ' + col.clave);
+    const cab = crear('header');
+    if (col.clave === 'comun') {
+      cab.appendChild(crear('span', '', '🤝'));
+    } else {
+      const asig = estado.asignaciones.find(a => a.rol.bando === col.bando);
+      const rol = asig ? asig.rol : estado.roles.find(r => r.bando === col.bando);
+      if (rol) {
+        const c = dibujarSprite(rol.sprite);
+        if (col.clave === 'sindicato') c.style.transform = 'scaleX(-1)';
+        cab.appendChild(c);
+      }
+    }
+    cab.appendChild(crear('span', '', col.titulo));
+    caja.appendChild(cab);
+
+    const ul = crear('ul');
+    const items = acta.intereses[col.clave];
+    if (!items.length) ul.appendChild(crear('li', 'vacio-acta', col.clave === 'comun' ? '¿Qué quieren ambos?' : 'Sin registros todavía.'));
+    items.forEach((it, i) => {
+      const li = crear('li', 'item-int');
+      const tipo = col.clave === 'comun' ? 'comun' : it.tipo;
+      li.appendChild(crear('span', 'etiqueta-tipo ' + tipo, tipo === 'perspectiva' ? '👁 Perspectiva' : (tipo === 'comun' ? '🤝 Común' : '💡 Interés')));
+      li.appendChild(crear('span', 'txt', it.texto));
+      if (!sellada) {
+        const borrar = crear('button', 'no-imprimir', '✕');
+        borrar.setAttribute('aria-label', 'Borrar: ' + it.texto);
+        borrar.addEventListener('click', () => { items.splice(i, 1); guardar(); renderActa(); });
+        li.appendChild(borrar);
+      }
+      ul.appendChild(li);
+    });
+    caja.appendChild(ul);
+
+    if (!sellada) {
+      const zona = crear('div', 'agregar no-imprimir');
+      const fila = crear('div', 'fila');
+      const campo = crear('input');
+      campo.type = 'text'; campo.maxLength = 160;
+      campo.placeholder = col.clave === 'comun' ? 'Ej.: Que el servicio no se detenga' : (col.clave === 'gobierno' ? 'Ej.: Cuidar el presupuesto del año' : 'Ej.: Recuperar el poder adquisitivo');
+      campo.setAttribute('aria-label', 'Nuevo registro para ' + col.titulo);
+      let selTipo = null;
+      if (col.clave !== 'comun') {
+        selTipo = crear('select');
+        selTipo.setAttribute('aria-label', 'Tipo de registro para ' + col.titulo);
+        [['interes', '💡 Interés'], ['perspectiva', '👁 Perspectiva']].forEach(([v, t]) => {
+          const op = crear('option', '', t); op.value = v; selTipo.appendChild(op);
+        });
+      }
+      const boton = crear('button', 'btn btn-chico btn-verde', '+');
+      boton.setAttribute('aria-label', 'Agregar a ' + col.titulo);
+      const agregar = () => {
+        const texto = campo.value.replace(/\s+/g, ' ').trim();
+        if (!texto) { SONIDOS.error(); campo.focus(); return; }
+        const estabaLogrado = nivelLogrado(1);
+        items.push({ texto, tipo: selTipo ? selTipo.value : 'comun' });
+        guardar(); renderActa(); SONIDOS.moneda();
+        if (!estabaLogrado && nivelLogrado(1)) { avisar('⭐ ¡Nivel 1 superado! Ambos bandos pusieron sus intereses sobre la mesa.'); lanzarConfeti(50); }
+        const nuevo = document.querySelector(`.col-int.${col.clave} .agregar input`);
+        if (nuevo) nuevo.focus();
+      };
+      boton.addEventListener('click', agregar);
+      campo.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregar(); } });
+      fila.append(campo, boton);
+      zona.appendChild(fila);
+      if (selTipo) zona.appendChild(selTipo);
+      caja.appendChild(zona);
+    }
+    cont.appendChild(caja);
+  });
+  const n = acta.intereses.gobierno.length + acta.intereses.sindicato.length + acta.intereses.comun.length;
+  $('#acta-resumen-int').textContent = n ? `${n} ${n === 1 ? 'registro' : 'registros'} · ${acta.intereses.comun.length} en común` : '';
+}
+
+/** Nivel 2: propuestas con votos de cada bando. */
+function renderSoluciones() {
+  const acta = estado.acta;
+  const sellada = acta.sellada;
+  const ol = $('#acta-soluciones');
+  ol.replaceChildren();
+  if (!acta.soluciones.length) {
+    ol.appendChild(crear('li', 'vacio-acta', sellada ? 'No se registraron propuestas.' : 'Todavía no hay ideas. ¡Toda propuesta suma!'));
+  }
+  acta.soluciones.forEach((sol, i) => {
+    const combo = esCombo(sol);
+    const li = crear('li', 'sol' + (combo ? ' combo' : '') + (esDescartada(sol) ? ' descartada' : '') + (sol.llevada ? ' llevada' : ''));
+    const cuerpo = crear('div');
+    const linea = crear('div');
+    linea.append(crear('span', 'sol-texto', sol.texto), crear('span', 'sol-autor', '· propone ' + AUTORES[sol.autor]));
+    cuerpo.appendChild(linea);
+
+    const votos = crear('div', 'votos');
+    ['gobierno', 'sindicato'].forEach(bando => {
+      const caja = crear('span', 'voto ' + bando);
+      caja.appendChild(crear('span', '', ETIQUETA_BANDO[bando]));
+      [[true, '👍'], [false, '👎']].forEach(([valor, icono]) => {
+        const b = crear('button', sol.votos[bando] === valor ? 'on' : '', icono);
+        b.type = 'button';
+        b.disabled = sellada;
+        b.setAttribute('aria-pressed', String(sol.votos[bando] === valor));
+        b.setAttribute('aria-label', `${ETIQUETA_BANDO[bando]} vota ${valor ? 'a favor' : 'en contra'} de: ${sol.texto}`);
+        b.addEventListener('click', () => votarSolucion(sol, bando, valor));
+        caja.appendChild(b);
+      });
+      votos.appendChild(caja);
+    });
+    if (sol.llevada) votos.appendChild(crear('span', 'estado-sol', '✔ Ya está en el acuerdo'));
+    else if (combo) {
+      votos.appendChild(crear('span', 'combo-tag', '⭐ ¡COMBO!'));
+      if (!sellada) {
+        const llevar = crear('button', 'btn btn-chico btn-oro', '➜ Llevar al acuerdo');
+        llevar.addEventListener('click', () => llevarAlAcuerdo(sol));
+        votos.appendChild(llevar);
+      }
+    } else if (esDescartada(sol)) votos.appendChild(crear('span', 'estado-sol', '✖ Sin consenso'));
+    cuerpo.appendChild(votos);
+    li.appendChild(cuerpo);
+
+    if (!sellada) {
+      const borrar = crear('button', 'btn btn-chico btn-rojo no-imprimir', '🗑');
+      borrar.setAttribute('aria-label', 'Eliminar propuesta ' + (i + 1));
+      borrar.addEventListener('click', () => { acta.soluciones.splice(i, 1); guardar(); renderActa(); SONIDOS.clic(); });
+      li.appendChild(borrar);
+    } else {
+      li.appendChild(crear('span'));
+    }
+    ol.appendChild(li);
+  });
+  const combos = acta.soluciones.filter(esCombo).length;
+  $('#acta-resumen-sol').textContent = acta.soluciones.length
+    ? `${acta.soluciones.length} ${acta.soluciones.length === 1 ? 'idea' : 'ideas'} · ${combos} ${combos === 1 ? 'combo' : 'combos'}`
+    : '';
+}
+
+function votarSolucion(sol, bando, valor) {
+  const antes = esCombo(sol);
+  sol.votos[bando] = sol.votos[bando] === valor ? null : valor; // segundo clic: quita el voto
+  guardar();
+  renderActa();
+  if (!antes && esCombo(sol)) {
+    [659, 784, 988, 1319].forEach((f, i) => tono(f, .08, 'square', .05, i * .06));
+    lanzarConfeti(60);
+    avisar('⭐ ¡COMBO! Ambos bandos aceptan la idea. Ya pueden llevarla al acuerdo.', 3500);
+  } else {
+    tono(valor ? 740 : 220, .07, 'square', .04);
+  }
+}
+
+function llevarAlAcuerdo(sol) {
+  estado.acta.acuerdos.push({ texto: sol.texto, estado: 'acordado' });
+  sol.llevada = true;
+  guardar(); renderActa();
+  SONIDOS.moneda();
+  avisar('➜ ¡Pasó al acuerdo! La verán en el nivel 3.');
+}
+
+// Eventos de los niveles
+document.querySelectorAll('.nivel-btn').forEach(b => b.addEventListener('click', () => {
+  const n = Number(b.dataset.etapa);
+  if (n === estado.acta.etapa && !actaVerTodo) return;
+  irAEtapa(n);
+}));
+$('#btn-etapa-ant').addEventListener('click', () => irAEtapa(estado.acta.etapa - 1));
+$('#btn-etapa-sig').addEventListener('click', () => irAEtapa(estado.acta.etapa + 1));
+$('#btn-ver-todo').addEventListener('click', () => { actaVerTodo = !actaVerTodo; renderActa(); SONIDOS.clic(); });
+function agregarSolucion() {
+  const campo = $('#acta-nueva-sol');
+  const texto = campo.value.replace(/\s+/g, ' ').trim();
+  if (!texto) { avisar('⚠ Escribe la propuesta primero.'); SONIDOS.error(); campo.focus(); return; }
+  estado.acta.soluciones.push(nuevaSolucion(texto, $('#acta-sol-autor').value));
+  campo.value = '';
+  guardar(); renderActa(); SONIDOS.moneda();
+  campo.focus();
+}
+$('#btn-acta-sol').addEventListener('click', agregarSolucion);
+$('#acta-nueva-sol').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregarSolucion(); } });
 
 /* =====================================================================
    15. EVENTOS
@@ -2314,6 +2965,12 @@ $('#btn-vaciar').addEventListener('click', () => {
 });
 $('#btn-comenzar').addEventListener('click', () => {
   if (estado.participantes.length < 2) { SONIDOS.error(); return; }
+  if (estado.modoNeutral === 'facilitadores' && !estado.facilitadores.length) {
+    avisar('🎙️ Suma al menos una persona al equipo facilitador, o elige otra opción para los roles neutrales.', 4500);
+    SONIDOS.error();
+    $('#input-facilitador').focus();
+    return;
+  }
   SONIDOS.moneda();
   irA('sorteo');
 });
