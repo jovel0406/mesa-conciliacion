@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa de Conciliación · Arcade</title>
+<meta name="description" content="Actividad lúdica de clase: sorteo de roles para simular una negociación colectiva entre Gobierno y Sindicato.">
+<!-- Favicon en SVG inline: un dado pixelado. Sin archivos externos. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23f4c430'/%3E%3Crect x='1' y='1' width='2' height='2' fill='%2314213d'/%3E%3Crect x='5' y='5' width='2' height='2' fill='%2314213d'/%3E%3Crect x='3' y='3' width='2' height='2' fill='%2314213d'/%3E%3C/svg%3E">
+<style>
+/* =====================================================================
+   VARIABLES DE DISEÑO
+   Paleta sobria (azul marino, verde oliva, gris claro, dorado) llevada
+   a un estilo "arcade": fondo oscuro, bordes gruesos y sombras duras.
+   ===================================================================== */
+:root {
+  --fondo: #0a1024;
+  --fondo-2: #111a38;
+  --marino: #14213d;
+  --marino-claro: #24386b;
+  --azul-gob: #3b82f6;
+  --azul-gob-osc: #1e3a8a;
+  --verde-sind: #7ba33a;
+  --verde-sind-osc: #3f5a1c;
+  --gris-neutral: #9ca3af;
+  --gris-neutral-osc: #4b5563;
+  --gris-claro: #e5e7eb;
+  --dorado: #f4c430;
+  --dorado-osc: #b8860b;
+  --rojo: #ef4444;
+  --texto: #f8fafc;
+  --texto-suave: #b6c2dc;
+  --tarjeta: #18234a;
+  --borde: #2c3c72;
+  --radio: 18px;
+  --sombra: 0 10px 30px rgba(0, 0, 0, .35);
+  --sombra-dura: 6px 6px 0 #000;
+  --fuente: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "Consolas", "Menlo", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--fuente);
+  color: var(--texto);
+  background-color: var(--fondo);
+  /* Cuadrícula pixelada de fondo + halos de color de cada bando */
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(59,130,246,.18), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(123,163,58,.18), transparent 40%),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: auto, auto, 32px 32px, 32px 32px;
+  background-attachment: fixed;
+  line-height: 1.45;
+  overflow-x: hidden;
+}
+/* Líneas de escaneo tipo monitor CRT (se pueden apagar desde el panel) */
+body.crt::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+  z-index: 999;
+}
+
+button { font-family: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid var(--dorado); outline-offset: 2px;
+}
+.oculto { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* =====================================================================
+   BOTONES ARCADE
+   ===================================================================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  border: 3px solid #000;
+  border-radius: 12px;
+  padding: .65em 1.1em;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: .02em;
+  color: #111;
+  background: var(--gris-claro);
+  box-shadow: 4px 4px 0 #000;
+  transition: transform .08s, box-shadow .08s, filter .15s;
+  user-select: none;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 #000; filter: grayscale(.6); }
+.btn-oro { background: linear-gradient(#ffd75e, var(--dorado)); }
+.btn-azul { background: linear-gradient(#60a5fa, var(--azul-gob)); color: #fff; text-shadow: 1px 1px 0 #000; }
+.btn-verde { background: linear-gradient(#9cc957, var(--verde-sind)); color: #fff; text-shadow: 1px 1px 0 #000; }
+.btn-rojo { background: linear-gradient(#f87171, var(--rojo)); color: #fff; text-shadow: 1px 1px 0 #000; }
+.btn-oscuro { background: var(--marino-claro); color: #fff; }
+.btn-gigante { font-size: clamp(1.3rem, 2.6vw, 2rem); padding: .7em 1.4em; border-radius: 18px; box-shadow: 7px 7px 0 #000; }
+.btn-gigante:active { transform: translate(5px, 5px); box-shadow: 2px 2px 0 #000; }
+.btn-chico { font-size: .85rem; padding: .4em .7em; box-shadow: 3px 3px 0 #000; border-width: 2px; border-radius: 9px; }
+.btn-icono { width: 2.6rem; height: 2.6rem; padding: 0; font-size: 1.2rem; }
+
+/* Botón principal que "late" para llamar la atención */
+.latido { animation: latido 1.6s ease-in-out infinite; }
+@keyframes latido { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+/* =====================================================================
+   CABECERA
+   ===================================================================== */
+.cabecera {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem 1rem;
+  background: rgba(10,16,36,.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 3px solid #000;
+  box-shadow: 0 3px 0 var(--dorado-osc);
+}
+.marca { display: flex; align-items: center; gap: .6rem; font-weight: 900; letter-spacing: .04em; font-size: 1.05rem; }
+.marca .moneda {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff3b0, var(--dorado) 45%, var(--dorado-osc));
+  border: 3px solid #000; display: grid; place-items: center; font-size: .8rem; color: #000;
+  animation: girar 3s linear infinite;
+}
+@keyframes girar { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(.15); } }
+.cabecera .espacio { flex: 1; }
+.cabecera .acciones { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.marcador-hud {
+  font-family: var(--mono); font-weight: 700; font-size: .85rem;
+  background: #000; color: var(--dorado); padding: .35rem .6rem; border-radius: 8px; border: 2px solid var(--dorado-osc);
+  white-space: nowrap;
+}
+
+/* =====================================================================
+   DISTRIBUCIÓN: contenido principal + panel lateral
+   ===================================================================== */
+.distribucion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+body.sin-panel .distribucion { grid-template-columns: minmax(0, 1fr); }
+body.sin-panel .panel { display: none; }
+main { min-width: 0; }
+
+.caja {
+  background: linear-gradient(180deg, var(--tarjeta), #131c3d);
+  border: 3px solid #000;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-dura), var(--sombra);
+  padding: 1.25rem;
+}
+.caja + .caja { margin-top: 1.25rem; }
+.titulo-caja {
+  margin: 0 0 .75rem; font-size: 1.15rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--dorado); text-shadow: 2px 2px 0 #000;
+  display: flex; align-items: center; gap: .5rem;
+}
+
+/* =====================================================================
+   PANTALLA DE INICIO
+   ===================================================================== */
+.heroe { text-align: center; padding: 1.5rem 1rem 1rem; position: relative; overflow: hidden; }
+.heroe .insert {
+  font-family: var(--mono); color: var(--dorado); letter-spacing: .3em; font-weight: 700; font-size: .9rem;
+  animation: parpadeo 1s steps(2, start) infinite;
+}
+@keyframes parpadeo { to { visibility: hidden; } }
+.titulo-juego {
+  margin: .4rem 0 .2rem;
+  font-size: clamp(2.2rem, 6.5vw, 5rem);
+  font-weight: 900;
+  line-height: .95;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff6c9 0%, var(--dorado) 50%, #c98a07 51%, #ffd75e 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(4px 4px 0 #000) drop-shadow(0 0 18px rgba(244,196,48,.35));
+}
+.subtitulo-juego { font-size: clamp(1.1rem, 2.4vw, 1.7rem); font-weight: 900; margin: .3rem 0 0; letter-spacing: .06em; }
+.subtitulo-juego .gob { color: #7fb0ff; text-shadow: 2px 2px 0 #000; }
+.subtitulo-juego .sind { color: #b6e07a; text-shadow: 2px 2px 0 #000; }
+.subtitulo-juego .vs {
+  display: inline-block; margin: 0 .4em; padding: .05em .35em; background: var(--rojo); color: #fff;
+  border: 3px solid #000; border-radius: 8px; transform: rotate(-6deg); box-shadow: 3px 3px 0 #000;
+}
+.arena {
+  display: flex; justify-content: center; align-items: flex-end; gap: clamp(.25rem, 1.5vw, 1.2rem);
+  margin: 1.4rem auto .5rem; flex-wrap: wrap; min-height: 110px;
+}
+.arena .lado { display: flex; gap: clamp(.2rem, 1vw, .8rem); align-items: flex-end; }
+.arena .mesa-pixel {
+  width: clamp(70px, 12vw, 150px); height: 26px; background: #6b3f1d; border: 3px solid #000;
+  box-shadow: inset 0 6px 0 #8b5a2b, 4px 4px 0 #000; border-radius: 4px; align-self: flex-end; margin-bottom: 10px;
+}
+.intro-texto { color: var(--texto-suave); max-width: 720px; margin: .6rem auto 0; font-size: 1.05rem; }
+
+.registro { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1.25rem; }
+.campo-etiqueta { display: block; font-weight: 800; margin-bottom: .35rem; }
+.ayuda { color: var(--texto-suave); font-size: .9rem; margin: .25rem 0 .6rem; }
+.fila { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+input[type="text"], textarea, select {
+  width: 100%;
+  font: inherit; font-size: 1.05rem;
+  color: var(--texto);
+  background: #0b1330;
+  border: 3px solid #000;
+  border-radius: 10px;
+  padding: .6rem .75rem;
+  box-shadow: inset 3px 3px 0 rgba(0,0,0,.35);
+}
+textarea { min-height: 150px; resize: vertical; }
+.fila input[type="text"] { flex: 1; min-width: 160px; width: auto; }
+.mensaje { min-height: 1.4em; font-weight: 700; margin: .5rem 0 0; font-size: .95rem; }
+.mensaje.error { color: #fca5a5; }
+.mensaje.ok { color: #bef264; }
+
+.contador {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .6rem;
+}
+.contador .numero {
+  font-family: var(--mono); font-size: 2.4rem; font-weight: 900; color: var(--dorado);
+  text-shadow: 3px 3px 0 #000; line-height: 1;
+}
+.lista-chips { display: flex; flex-wrap: wrap; gap: .45rem; max-height: 280px; overflow: auto; padding: .2rem; }
+.chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--gris-claro); color: #111; font-weight: 700;
+  border: 2px solid #000; border-radius: 999px; padding: .2rem .25rem .2rem .7rem;
+  box-shadow: 2px 2px 0 #000; animation: aparecer .25s ease-out;
+  max-width: 100%;
+}
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip button {
+  border: 2px solid #000; background: var(--rojo); color: #fff; border-radius: 50%;
+  width: 1.5rem; height: 1.5rem; line-height: 1; font-weight: 900; padding: 0; flex: none;
+}
+.vacio { color: var(--texto-suave); font-style: italic; }
+
+.cta-inicio { text-align: center; margin-top: 1.25rem; display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+
+/* =====================================================================
+   PANTALLA DE SORTEO
+   ===================================================================== */
+.sorteo-centro { text-align: center; padding: 1rem 0 .5rem; }
+.sorteo-centro h2 { font-size: clamp(1.6rem, 3.5vw, 2.6rem); margin: 0 0 .3rem; text-shadow: 3px 3px 0 #000; }
+.vista-previa { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin: 1rem 0; }
+.cupo {
+  display: inline-flex; align-items: center; gap: .4rem; font-weight: 800; font-size: .92rem;
+  padding: .3rem .7rem .3rem .3rem; border-radius: 999px; border: 2px solid #000; box-shadow: 2px 2px 0 #000;
+}
+.cupo canvas { width: 28px; height: 28px; }
+.cupo.gobierno { background: var(--azul-gob-osc); }
+.cupo.sindicato { background: var(--verde-sind-osc); }
+.cupo.neutral { background: var(--gris-neutral-osc); }
+.leyenda { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: .5rem 0 1rem; font-weight: 800; }
+.leyenda .punto { display: inline-block; width: 14px; height: 14px; border: 2px solid #000; border-radius: 3px; margin-right: .35rem; vertical-align: -2px; }
+
+/* =====================================================================
+   OVERLAY DE "SORTEO" (tragamonedas)
+   ===================================================================== */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(5, 8, 20, .93);
+  display: grid; place-items: center;
+  animation: aparecer .2s ease-out;
+}
+.maquina {
+  width: min(560px, 92vw);
+  background: linear-gradient(#b91c1c, #7f1d1d);
+  border: 4px solid #000; border-radius: 26px; box-shadow: 10px 10px 0 #000;
+  padding: 1.2rem; text-align: center;
+}
+.maquina .letrero {
+  font-family: var(--mono); font-weight: 900; font-size: clamp(1.2rem, 4vw, 2rem); color: var(--dorado);
+  text-shadow: 3px 3px 0 #000; letter-spacing: .15em;
+}
+.maquina .luces { display: flex; justify-content: center; gap: 10px; margin: .6rem 0; }
+.maquina .luces i {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--dorado); border: 2px solid #000;
+  animation: luz .4s steps(2) infinite;
+}
+.maquina .luces i:nth-child(even) { animation-delay: .2s; }
+@keyframes luz { 50% { background: #5a4500; } }
+.ventana-rodillo {
+  background: #fdfdf5; color: #111; border: 4px solid #000; border-radius: 16px;
+  padding: 1rem; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem;
+  box-shadow: inset 0 10px 0 rgba(0,0,0,.12), inset 0 -10px 0 rgba(0,0,0,.12);
+  overflow: hidden;
+}
+.ventana-rodillo canvas { width: 96px; height: 96px; }
+.ventana-rodillo .r-nombre { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 900; }
+.ventana-rodillo .r-rol { font-weight: 800; color: #444; }
+.ventana-rodillo .r-anim { animation: rodar .09s linear; }
+@keyframes rodar { from { transform: translateY(-30px); opacity: .2; } to { transform: none; opacity: 1; } }
+
+/* =====================================================================
+   TARJETAS DE ROL
+   ===================================================================== */
+.tarjeta {
+  --color: var(--gris-neutral);
+  --color-osc: var(--gris-neutral-osc);
+  position: relative;
+  background: linear-gradient(180deg, #fbfbf7, #eceee6);
+  color: #111;
+  border: 4px solid #000;
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 #000, var(--sombra);
+  overflow: hidden;
+  animation: revelar .6s cubic-bezier(.2,.9,.3,1.2);
+}
+.tarjeta.gobierno { --color: var(--azul-gob); --color-osc: var(--azul-gob-osc); }
+.tarjeta.sindicato { --color: var(--verde-sind); --color-osc: var(--verde-sind-osc); }
+.tarjeta.neutral { --color: var(--gris-neutral); --color-osc: var(--gris-neutral-osc); }
+@keyframes revelar {
+  0% { opacity: 0; transform: translateY(24px) scale(.92) rotateX(25deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+.tarjeta .franja {
+  background: repeating-linear-gradient(45deg, var(--color) 0 14px, var(--color-osc) 14px 28px);
+  border-bottom: 4px solid #000;
+  color: #fff; text-shadow: 2px 2px 0 #000;
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  padding: .55rem 1rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+}
+.insignia {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--color-osc); color: #fff; border: 2px solid #000; border-radius: 999px;
+  padding: .15rem .65rem; font-size: .8em; letter-spacing: .08em; text-shadow: 1px 1px 0 #000; box-shadow: 2px 2px 0 #000;
+}
+.tarjeta .cuerpo { display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; padding: 1.1rem 1.2rem 1.3rem; align-items: center; }
+.marco-sprite {
+  background:
+    conic-gradient(#d9dccf 25%, #c9ccbf 0 50%, #d9dccf 0 75%, #c9ccbf 0) 0 0 / 20px 20px;
+  border: 4px solid #000; border-radius: 16px; padding: 8px;
+  box-shadow: inset 0 0 0 4px var(--color);
+  display: grid; place-items: center;
+}
+.marco-sprite canvas { display: block; }
+.sprite-salta { animation: saltar 1s steps(2) infinite; }
+@keyframes saltar { 50% { transform: translateY(-4px); } }
+.tarjeta .nombre { font-size: 1.6rem; font-weight: 900; line-height: 1.1; margin: 0; word-break: break-word; }
+.tarjeta .rol { font-size: 1.15rem; font-weight: 800; color: var(--color-osc); margin: .25rem 0 .4rem; }
+.tarjeta .descripcion { margin: 0; color: #333; font-size: 1rem; }
+.secreto { margin-top: .7rem; }
+.secreto .btn-secreto {
+  border: 2px dashed #000; background: #fff4c2; color: #4a3500; border-radius: 10px; font-weight: 800; padding: .35rem .7rem; font-size: .9rem;
+}
+.secreto .texto-secreto {
+  margin-top: .45rem; background: #111; color: var(--dorado); border-radius: 10px; padding: .55rem .75rem; font-weight: 700;
+  border: 2px solid var(--dorado-osc); animation: aparecer .3s;
+}
+
+/* Tarjeta grande (modo presentación / proyector) */
+.tarjeta.grande { max-width: 980px; margin: 0 auto; }
+.tarjeta.grande .franja { font-size: clamp(1rem, 1.8vw, 1.4rem); padding: .8rem 1.4rem; }
+.tarjeta.grande .cuerpo { grid-template-columns: auto 1fr; gap: 2rem; padding: 2rem 2.2rem 2.3rem; }
+.tarjeta.grande .nombre { font-size: clamp(2.2rem, 5.5vw, 4.4rem); }
+.tarjeta.grande .rol { font-size: clamp(1.5rem, 3vw, 2.4rem); }
+.tarjeta.grande .descripcion { font-size: clamp(1.1rem, 1.9vw, 1.55rem); }
+.tarjeta.grande .marco-sprite canvas { width: clamp(140px, 18vw, 230px); height: clamp(140px, 18vw, 230px); }
+
+/* Tarjeta compacta (vista "La mesa") */
+.tarjeta.compacta { box-shadow: 5px 5px 0 #000; border-width: 3px; border-radius: 16px; }
+.tarjeta.compacta .franja { padding: .3rem .7rem; font-size: .72rem; border-bottom-width: 3px; }
+.tarjeta.compacta .cuerpo { gap: .7rem; padding: .7rem .8rem .8rem; align-items: start; }
+.tarjeta.compacta .marco-sprite { border-width: 3px; border-radius: 12px; padding: 4px; }
+.tarjeta.compacta .marco-sprite canvas { width: 64px; height: 64px; }
+.tarjeta.compacta .nombre { font-size: 1.2rem; }
+.tarjeta.compacta .rol { font-size: .98rem; margin: .1rem 0 .25rem; }
+.tarjeta.compacta .descripcion { font-size: .88rem; }
+.tarjeta.compacta .secreto .btn-secreto { font-size: .78rem; padding: .2rem .5rem; }
+
+/* Escenario de revelación */
+.escenario-revelacion { text-align: center; }
+.progreso { display: flex; align-items: center; gap: .8rem; justify-content: center; margin-bottom: 1rem; font-family: var(--mono); font-weight: 900; font-size: 1.1rem; }
+.barra-pixel { display: flex; gap: 3px; background: #000; padding: 3px; border-radius: 6px; flex-wrap: wrap; max-width: 60%; }
+.barra-pixel i { width: 14px; height: 16px; background: #2b355c; border-radius: 2px; }
+.barra-pixel i.lleno { background: var(--dorado); }
+.contenedor-tarjeta { min-height: 340px; display: flex; align-items: center; justify-content: center; perspective: 900px; }
+.tarjeta-misterio {
+  width: min(560px, 100%); aspect-ratio: 16 / 8; border: 4px dashed var(--dorado); border-radius: 22px;
+  display: grid; place-items: center; font-size: clamp(3rem, 9vw, 7rem); color: var(--dorado);
+  background: repeating-linear-gradient(45deg, #111a38 0 20px, #0d1430 20px 40px);
+  text-shadow: 4px 4px 0 #000; font-weight: 900;
+}
+.controles-revelacion { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; }
+.atajos { color: var(--texto-suave); font-size: .85rem; margin-top: .8rem; }
+kbd { font-family: var(--mono); background: #000; border: 1px solid #555; border-bottom-width: 3px; border-radius: 5px; padding: 0 .35em; color: #fff; }
+
+.mini-lista { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-top: 1.2rem; }
+.mini {
+  display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .55rem .2rem .2rem; border-radius: 999px;
+  border: 2px solid #000; font-size: .85rem; font-weight: 800; animation: aparecer .3s; box-shadow: 2px 2px 0 #000;
+}
+.mini canvas { width: 24px; height: 24px; }
+.mini.gobierno { background: var(--azul-gob-osc); }
+.mini.sindicato { background: var(--verde-sind-osc); }
+.mini.neutral { background: var(--gris-neutral-osc); }
+
+/* Vista "La mesa": tres columnas enfrentadas */
+.mesa {
+  display: grid; grid-template-columns: 1fr minmax(240px, .8fr) 1fr; gap: 1rem; align-items: start; margin-top: 1rem;
+}
+.columna-mesa { display: flex; flex-direction: column; gap: .9rem; text-align: left; }
+.cabeza-columna {
+  text-align: center; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; padding: .5rem; border-radius: 12px;
+  border: 3px solid #000; box-shadow: 4px 4px 0 #000; text-shadow: 2px 2px 0 #000;
+}
+.cabeza-columna.gobierno { background: var(--azul-gob-osc); }
+.cabeza-columna.sindicato { background: var(--verde-sind-osc); }
+.cabeza-columna.neutral { background: var(--gris-neutral-osc); }
+.titulo-final { font-size: clamp(1.6rem, 4vw, 3rem); margin: .2rem 0 .2rem; text-shadow: 4px 4px 0 #000; color: var(--dorado); }
+
+/* =====================================================================
+   PANEL LATERAL
+   ===================================================================== */
+.panel { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; padding-right: 4px; }
+.panel .caja { padding: 1rem; margin: 0; }
+.panel .titulo-caja { font-size: .95rem; }
+.marcador-bandos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; text-align: center; }
+.marcador-bandos div { border: 2px solid #000; border-radius: 10px; padding: .4rem .2rem; box-shadow: 2px 2px 0 #000; }
+.marcador-bandos b { display: block; font-family: var(--mono); font-size: 1.6rem; line-height: 1.1; }
+.marcador-bandos small { font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.reloj {
+  font-family: var(--mono); font-size: 3rem; font-weight: 900; text-align: center; letter-spacing: .05em;
+  background: #000; color: #4ade80; border-radius: 12px; border: 3px solid #333; padding: .2rem 0; margin-bottom: .6rem;
+  text-shadow: 0 0 10px rgba(74,222,128,.6);
+}
+.reloj.urgente { color: var(--rojo); text-shadow: 0 0 10px rgba(239,68,68,.7); animation: parpadeo .5s steps(2, start) infinite; }
+.reloj.alarma { animation: sacudir .4s linear 3; }
+@keyframes sacudir { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.presets { display: flex; gap: .35rem; justify-content: center; margin-bottom: .5rem; flex-wrap: wrap; }
+.tension-barra { display: flex; gap: 3px; background: #000; padding: 4px; border-radius: 8px; margin: .4rem 0 .6rem; }
+.tension-barra i { flex: 1; height: 22px; border-radius: 3px; background: #2a2f45; transition: background .2s; }
+.tension-cara { font-size: 2rem; text-align: center; line-height: 1; }
+.tension-etiqueta { text-align: center; font-weight: 800; font-size: .9rem; margin-top: .2rem; }
+.carta-evento {
+  background: #fff8dc; color: #2b1d00; border: 3px solid #000; border-radius: 14px; padding: .8rem; min-height: 120px;
+  box-shadow: 4px 4px 0 #000; margin-bottom: .6rem; font-weight: 600;
+}
+.carta-evento.girar { animation: voltear .5s ease-out; }
+@keyframes voltear { 0% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+.carta-evento .emoji { font-size: 1.8rem; display: block; }
+.carta-evento h4 { margin: .2rem 0; font-size: 1rem; }
+.carta-evento p { margin: 0; font-size: .9rem; }
+.fases { list-style: none; margin: 0 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+.fases li button {
+  width: 100%; text-align: left; border: 2px solid #000; border-radius: 9px; padding: .35rem .6rem; font-weight: 700;
+  background: #253360; color: #cbd5f5; font-size: .9rem; display: flex; gap: .5rem; align-items: center;
+}
+.fases li.hecha button { background: #1d3b2a; color: #9ae6b4; text-decoration: line-through; }
+.fases li.actual button { background: var(--dorado); color: #000; box-shadow: 2px 2px 0 #000; }
+.texto-escenario { font-size: .9rem; }
+.texto-escenario h4 { margin: .1rem 0 .3rem; color: var(--dorado); }
+.texto-escenario ul { margin: .3rem 0; padding-left: 1.1rem; }
+.texto-escenario .nota { color: var(--texto-suave); font-size: .78rem; font-style: italic; }
+.interruptores label { display: flex; align-items: center; gap: .5rem; font-weight: 700; margin: .3rem 0; cursor: pointer; }
+.interruptores input { width: 1.1rem; height: 1.1rem; accent-color: var(--dorado); }
+
+/* =====================================================================
+   MODAL (editor de roles)
+   ===================================================================== */
+.modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300; display: grid; place-items: center; padding: 1rem; }
+.modal {
+  width: min(1000px, 100%); max-height: 92vh; overflow: auto;
+  background: var(--fondo-2); border: 4px solid #000; border-radius: 20px; box-shadow: 10px 10px 0 #000; padding: 1.2rem;
+}
+.modal-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+.fila-rol {
+  display: grid; grid-template-columns: auto 1.1fr 150px 1.6fr 1.3fr auto; gap: .5rem; align-items: start;
+  background: #0f1834; border: 2px solid #000; border-radius: 12px; padding: .6rem; margin-bottom: .5rem;
+}
+.fila-rol textarea { min-height: 64px; font-size: .9rem; }
+.fila-rol input, .fila-rol select { font-size: .95rem; padding: .45rem .55rem; }
+.fila-rol .mini-sprite { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.fila-rol .mini-sprite canvas { width: 48px; height: 48px; background: #d9dccf; border: 2px solid #000; border-radius: 8px; }
+.fila-rol .botones-fila { display: flex; flex-direction: column; gap: .3rem; }
+.fila-rol label.esencial { font-size: .8rem; display: flex; gap: .3rem; align-items: center; margin-top: .3rem; color: var(--texto-suave); }
+.encabezado-roles { display: grid; grid-template-columns: 56px 1.1fr 150px 1.6fr 1.3fr 44px; gap: .5rem; font-size: .8rem; font-weight: 800; color: var(--texto-suave); padding: 0 .6rem .3rem; text-transform: uppercase; }
+
+/* Confeti (canvas a pantalla completa) */
+#confeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 400; }
+
+/* Toast de avisos */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 500;
+  background: #000; color: var(--dorado); font-weight: 800; border: 3px solid var(--dorado); border-radius: 12px; padding: .6rem 1rem;
+  box-shadow: 5px 5px 0 rgba(0,0,0,.5); animation: aparecer .2s; max-width: 92vw; text-align: center;
+}
+
+/* =====================================================================
+   MODO PROYECTOR: tipografía aún mayor y más contraste
+   ===================================================================== */
+body.proyector { font-size: 118%; }
+body.proyector .tarjeta .descripcion { color: #000; }
+body.proyector .tarjeta.compacta .descripcion { font-size: 1rem; }
+body.proyector .ayuda, body.proyector .intro-texto { color: #dfe7fb; }
+
+/* =====================================================================
+   RESPONSIVE
+   ===================================================================== */
+@media (max-width: 1100px) {
+  .distribucion { grid-template-columns: minmax(0, 1fr); }
+  .panel { position: static; max-height: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .mesa { grid-template-columns: 1fr 1fr; }
+  .mesa .columna-mesa.neutral { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 760px) {
+  .distribucion { padding: .75rem 16px; }
+  .registro { grid-template-columns: 1fr; }
+  .mesa { grid-template-columns: 1fr; }
+  .tarjeta .cuerpo, .tarjeta.grande .cuerpo { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 1.2rem; gap: 1rem; }
+  .cabecera { flex-wrap: wrap; padding: .5rem 16px; }
+  .marca .texto-marca { display: none; }
+  .fila-rol, .encabezado-roles { grid-template-columns: 1fr; }
+  .encabezado-roles { display: none; }
+  .fila-rol .botones-fila { flex-direction: row; }
+  .barra-pixel { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+</style>
+</head>
+<body class="crt">
+
+<!-- ===================== CABECERA ===================== -->
+<header class="cabecera">
+  <div class="marca">
+    <span class="moneda" aria-hidden="true">$</span>
+    <span class="texto-marca">MESA DE CONCILIACIÓN</span>
+  </div>
+  <span class="marcador-hud" id="hud" aria-live="polite">JUGADORES 00</span>
+  <div class="espacio"></div>
+  <div class="acciones">
+    <button class="btn btn-chico btn-oro" id="btn-inicio" title="Volver a la pantalla de inicio (no borra nada)">🏠 Inicio</button>
+    <button class="btn btn-chico" id="btn-roles" title="Ver y editar los roles">⚙️ Roles</button>
+    <button class="btn btn-chico" id="btn-sonido" title="Activar/desactivar sonido" aria-pressed="true">🔊</button>
+    <button class="btn btn-chico" id="btn-proyector" title="Modo proyector: letra más grande" aria-pressed="false">📽️</button>
+    <button class="btn btn-chico" id="btn-pantalla" title="Pantalla completa (F)">⛶</button>
+    <button class="btn btn-chico" id="btn-panel" title="Mostrar/ocultar panel lateral" aria-pressed="true">📋 Panel</button>
+  </div>
+</header>
+
+<div class="distribucion">
+<main>
+
+  <!-- ===================== PANTALLA 1: INICIO ===================== -->
+  <section id="pantalla-inicio" aria-labelledby="titulo-juego">
+    <div class="caja heroe">
+      <div class="insert">★ INSERTA UNA MONEDA ★</div>
+      <h1 class="titulo-juego" id="titulo-juego">Mesa de<br>Conciliación</h1>
+      <p class="subtitulo-juego"><span class="gob">GOBIERNO</span><span class="vs">VS</span><span class="sind">SINDICATO</span></p>
+      <div class="arena" id="arena" aria-hidden="true"></div>
+      <p class="intro-texto">Registra a tus estudiantes, sortea los roles al azar y que empiece la negociación colectiva.
+        Cada jugador recibe un personaje, un bando y un <b>objetivo secreto</b>. 🤝</p>
+    </div>
+
+    <div class="caja">
+      <h2 class="titulo-caja">🕹️ Registro de jugadores</h2>
+      <div class="registro">
+        <div>
+          <label class="campo-etiqueta" for="input-nombre">Agregar un estudiante</label>
+          <div class="fila">
+            <input type="text" id="input-nombre" maxlength="40" placeholder="Ej.: Camila Torres" autocomplete="off">
+            <button class="btn btn-verde" id="btn-agregar">+ Agregar</button>
+          </div>
+          <label class="campo-etiqueta" for="input-lista" style="margin-top:1rem">…o pega la lista completa (uno por línea)</label>
+          <textarea id="input-lista" placeholder="Camila Torres&#10;Mateo Rojas&#10;Valentina Díaz&#10;…"></textarea>
+          <div class="fila" style="margin-top:.5rem">
+            <button class="btn btn-azul btn-chico" id="btn-agregar-lista">⤵ Agregar lista</button>
+            <button class="btn btn-chico" id="btn-demo" title="Carga nombres ficticios para probar">🧪 Nombres de ejemplo</button>
+          </div>
+          <p class="mensaje" id="mensaje-registro" role="status" aria-live="polite"></p>
+        </div>
+        <div>
+          <div class="contador">
+            <div>
+              <div class="campo-etiqueta" style="margin:0">Participantes</div>
+              <div class="ayuda" style="margin:0">Mínimo 2 · máximo 80</div>
+            </div>
+            <div class="numero" id="contador" aria-live="polite">0</div>
+          </div>
+          <div class="lista-chips" id="lista-participantes"></div>
+          <div class="fila" style="margin-top:.7rem">
+            <button class="btn btn-chico btn-rojo" id="btn-vaciar">🗑 Vaciar lista</button>
+          </div>
+        </div>
+      </div>
+      <div class="cta-inicio">
+        <button class="btn btn-oro btn-gigante latido" id="btn-comenzar" disabled>▶ Comenzar actividad</button>
+        <button class="btn btn-oscuro oculto" id="btn-volver-resultados">↩ Volver a los resultados del último sorteo</button>
+        <span class="ayuda" id="ayuda-comenzar">Agrega al menos 2 participantes para comenzar.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANTALLA 2: SORTEO ===================== -->
+  <section id="pantalla-sorteo" class="oculto" aria-labelledby="titulo-sorteo">
+    <div class="caja sorteo-centro">
+      <h2 id="titulo-sorteo">🎰 Sala de sorteo</h2>
+      <p class="ayuda" id="resumen-sorteo"></p>
+      <div class="leyenda">
+        <span><i class="punto" style="background:var(--azul-gob)"></i>Gobierno</span>
+        <span><i class="punto" style="background:var(--verde-sind)"></i>Sindicato</span>
+        <span><i class="punto" style="background:var(--gris-neutral)"></i>Neutral</span>
+      </div>
+      <div class="vista-previa" id="vista-previa"></div>
+      <button class="btn btn-oro btn-gigante latido" id="btn-asignar">🎲 Asignar roles al azar</button>
+      <div class="fila" style="justify-content:center;margin-top:1.2rem">
+        <button class="btn btn-chico" id="btn-editar-desde-sorteo">⚙️ Editar roles</button>
+        <button class="btn btn-chico" id="btn-volver-registro">✏️ Editar participantes</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANTALLA 3: REVELACIÓN ===================== -->
+  <section id="pantalla-revelacion" class="oculto" aria-labelledby="titulo-revelacion">
+    <div class="caja escenario-revelacion">
+      <h2 class="sr-only" id="titulo-revelacion">Revelación de roles</h2>
+      <div id="modo-uno-a-uno">
+        <div class="progreso">
+          <span id="texto-progreso">0 / 0</span>
+          <div class="barra-pixel" id="barra-progreso" aria-hidden="true"></div>
+        </div>
+        <div class="contenedor-tarjeta" id="contenedor-tarjeta" aria-live="polite"></div>
+        <div class="controles-revelacion">
+          <button class="btn btn-oro btn-gigante" id="btn-siguiente">Siguiente ▶</button>
+          <button class="btn btn-azul" id="btn-revelar-todo">⚡ Revelar todo</button>
+        </div>
+        <div class="atajos"><kbd>Espacio</kbd>/<kbd>→</kbd> siguiente · <kbd>T</kbd> revelar todo · <kbd>F</kbd> pantalla completa</div>
+        <div class="mini-lista" id="mini-lista" aria-label="Roles ya revelados"></div>
+      </div>
+
+      <div id="modo-mesa" class="oculto">
+        <h3 class="titulo-final">🏛️ ¡La mesa está servida!</h3>
+        <p class="ayuda">Siéntense según su bando. Gobierno a la izquierda, Sindicato a la derecha y el equipo neutral al centro.</p>
+        <div class="mesa" id="mesa"></div>
+      </div>
+
+      <div class="controles-revelacion" style="margin-top:1.8rem;border-top:3px dashed #2c3c72;padding-top:1.2rem">
+        <button class="btn btn-verde" id="btn-reasignar">🔁 Reasignar</button>
+        <button class="btn btn-oscuro oculto" id="btn-ver-uno">🃏 Ver tarjetas una por una</button>
+        <button class="btn btn-rojo" id="btn-reiniciar">⟲ Reiniciar actividad</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===================== PANEL LATERAL ===================== -->
+<aside class="panel" id="panel" aria-label="Panel del docente">
+  <div class="caja">
+    <h3 class="titulo-caja">📊 Marcador</h3>
+    <div class="marcador-bandos">
+      <div style="background:var(--azul-gob-osc)"><b id="cuenta-gob">0</b><small>Gobierno</small></div>
+      <div style="background:var(--gris-neutral-osc)"><b id="cuenta-neu">0</b><small>Neutral</small></div>
+      <div style="background:var(--verde-sind-osc)"><b id="cuenta-sind">0</b><small>Sindicato</small></div>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h3 class="titulo-caja">⏱️ Ronda</h3>
+    <div class="reloj" id="reloj" aria-live="off">05:00</div>
+    <div class="presets">
+      <button class="btn btn-chico" data-min="1">1′</button>
+      <button class="btn btn-chico" data-min="3">3′</button>
+      <button class="btn btn-chico" data-min="5">5′</button>
+      <button class="btn btn-chico" data-min="10">10′</button>
+    </div>
+    <div class="fila" style="justify-content:center">
+      <button class="btn btn-chico btn-verde" id="btn-reloj">▶ Iniciar</button>
+      <button class="btn btn-chico" id="btn-reloj-reset">↺</button>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h3 class="titulo-caja">🌡️ Tensión en la mesa</h3>
+    <div class="tension-cara" id="tension-cara">🙂</div>
+    <div class="tension-barra" id="tension-barra" aria-hidden="true"></div>
+    <div class="tension-etiqueta" id="tension-etiqueta">Calma</div>
+    <div class="fila" style="justify-content:center;margin-top:.5rem">
+      <button class="btn btn-chico" id="btn-tension-menos" aria-label="Bajar tensión">－ Calmar</button>
+      <button class="btn btn-chico btn-rojo" id="btn-tension-mas" aria-label="Subir tensión">＋ Tensar</button>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h3 class="titulo-caja">🃏 Carta de giro</h3>
+    <div class="carta-evento" id="carta-evento">
+      <span class="emoji">❔</span>
+      <h4>¿Se complica la negociación?</h4>
+      <p>Saca una carta para lanzar un evento inesperado a la mesa.</p>
+    </div>
+    <button class="btn btn-chico btn-oro" id="btn-carta" style="width:100%">🎴 Sacar carta</button>
+  </div>
+
+  <div class="caja">
+    <h3 class="titulo-caja">🧭 Fases</h3>
+    <ol class="fases" id="fases"></ol>
+    <button class="btn btn-chico btn-azul" id="btn-fase" style="width:100%">Siguiente fase ▶</button>
+  </div>
+
+  <div class="caja">
+    <h3 class="titulo-caja">📜 Escenario</h3>
+    <div class="texto-escenario" id="texto-escenario">
+      <p class="ayuda" style="margin:0">¿Sin conflicto preparado? Sortea un caso ficticio para negociar.</p>
+    </div>
+    <button class="btn btn-chico" id="btn-escenario" style="width:100%;margin-top:.6rem">🎲 Sortear escenario</button>
+  </div>
+
+  <div class="caja interruptores">
+    <h3 class="titulo-caja">🎛️ Ajustes</h3>
+    <label><input type="checkbox" id="chk-crt" checked> Efecto pantalla retro (CRT)</label>
+    <label><input type="checkbox" id="chk-secretos" checked> Mostrar objetivos secretos</label>
+  </div>
+</aside>
+</div>
+
+<!-- Overlay del sorteo (tragamonedas) -->
+<div class="overlay oculto" id="overlay-sorteo" aria-live="assertive">
+  <div class="maquina">
+    <div class="letrero">SORTEANDO…</div>
+    <div class="luces"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="ventana-rodillo" id="rodillo"></div>
+  </div>
+</div>
+
+<!-- Modal: editor de roles -->
+<div class="modal-fondo oculto" id="modal-roles" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-roles">
+  <div class="modal">
+    <div class="modal-cabecera">
+      <h2 class="titulo-caja" id="titulo-modal-roles" style="margin:0">⚙️ Roles de la actividad</h2>
+      <button class="btn btn-chico btn-icono" id="btn-cerrar-roles" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="ayuda">El orden importa: si hay menos estudiantes que roles, se usan primero los marcados como <b>esenciales</b>
+      y luego se alternan Gobierno/Sindicato (con un rol neutral cada dos parejas). Si hay más estudiantes que roles,
+      se crean automáticamente <i>Asesores del Gobierno</i> e <i>Integrantes de Base</i> para equilibrar los bandos.</p>
+    <div class="encabezado-roles"><span>Personaje</span><span>Rol</span><span>Bando</span><span>Descripción</span><span>Objetivo secreto</span><span></span></div>
+    <div id="lista-roles-editor"></div>
+    <div class="fila" style="margin-top:.8rem;justify-content:space-between">
+      <div class="fila">
+        <button class="btn btn-chico btn-verde" id="btn-nuevo-rol">+ Agregar rol</button>
+        <button class="btn btn-chico" id="btn-restaurar-roles">↺ Restaurar roles originales</button>
+      </div>
+      <button class="btn btn-oro" id="btn-guardar-roles">💾 Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confeti" aria-hidden="true"></canvas>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   1. MOTOR DE PIXEL ART
+   Cada personaje es una cuadrícula de 16×16. Una plantilla base de
+   cuerpo + capas de "accesorios" (casco, corbata, megáfono…) que
+   reemplazan píxeles. Las letras se traducen a colores con una paleta.
+   ===================================================================== */
+
+// Plantilla base del cuerpo (16 columnas × 16 filas). '.' = transparente.
+const CUERPO_BASE = [
+  '................',
+  '.....KKKKKK.....',
+  '....KHHHHHHK....',
+  '...KHHHHHHHHK...',
+  '...KHSSSSSSHK...',
+  '...KSSESSESSK...',
+  '...KSSSSSSSSK...',
+  '....KSSMMSSK....',
+  '.....KSSSSK.....',
+  '...KOOOWWOOOK...',
+  '..KOOOOOOOOOOK..',
+  '..KSOOOOOOOOSK..',
+  '..KSOOOOOOOOSK..',
+  '...KPPPPPPPPK...',
+  '...KPPPKKPPPK...',
+  '..KBBBBKKBBBBK..'
+];
+
+// Capas: objeto {fila: 'cadena de 16'}; '.' significa "no cambiar".
+const CAPAS = {
+  // --- Peinados ---
+  largo: {
+    5: '..KH........HK..', 6: '..KH........HK..', 7: '..KH........HK..', 8: '..KHH......HHK..'
+  },
+  calvo: { 2: '....KSSSSSSK....', 3: '...KHSSSSSSHK...' },
+  mono: { 0: '......KHHK......' },
+  // --- Sombreros ---
+  casco: { 0: '......KKKK......', 1: '.....KYYYYK.....', 2: '...KYYYYYYYYK...', 3: '..KYYYYYYYYYYK..' },
+  gorra: { 1: '.....KCCCCK.....', 2: '....KCCCCCCK....', 3: '...KCCCCCCCCCCK.' },
+  bandana: { 3: '...KRRRRRRRRK...', 4: '.............RR.' },
+  // --- Cara ---
+  lentes: { 5: '.....GEGGEG.....' },
+  // --- Ropa ---
+  corbata: { 10: '.......AA.......', 11: '.......AA.......', 12: '........A.......' },
+  chaleco: { 10: '....VV....VV....', 11: '....LLLLLLLL....', 12: '....VVVVVVVV....' },
+  medalla: { 10: '....X...........' },
+  // --- Objetos en la mano derecha ---
+  megafono: { 9: '..............RR', 10: '.............RRR', 11: '.............SRR', 12: '..............RR' },
+  microfono: { 8: '..............D.', 9: '..............D.', 10: '..............K.', 11: '.............SK.' },
+  mazo: { 8: '.............NNN', 9: '.............NNN', 10: '..............N.', 11: '.............SN.' },
+  carpeta: { 9: '..............D.', 10: '.............LLL', 11: '.............LDL', 12: '.............LLL', 13: '.............LDL' },
+  calculadora: { 10: '.............DDD', 11: '.............DGD', 12: '.............DQD', 13: '.............DQD' },
+  pancarta: {
+    4: '.............RRR', 5: '.............RLR', 6: '.............RRR',
+    7: '..............N.', 8: '..............N.', 9: '..............N.', 10: '..............N.', 11: '.............SN.'
+  },
+  grafico: { 9: '.............LLL', 10: '.............LLR', 11: '.............LRR', 12: '.............RRR' },
+  // --- Objetos en la mano izquierda ---
+  maletin: { 12: '.D..............', 13: 'NNN.............', 14: 'NXN.............', 15: 'NNN.............' },
+  libro: { 12: 'RRR.............', 13: 'RXR.............', 14: 'RRR.............' }
+};
+
+// Colores fijos (no dependen del personaje)
+const COLORES_FIJOS = {
+  K: '#111111', E: '#111111', M: '#8b1e1e', W: '#ffffff', Y: '#facc15', R: '#dc2626',
+  G: '#1f2937', V: '#f97316', D: '#374151', Q: '#d1d5db', N: '#7c4a1e', L: '#f8fafc', X: '#f4c430'
+};
+
+/** Dibuja un sprite en un <canvas> de 16×16 (se escala con CSS). */
+function dibujarSprite(cfg, tamCss) {
+  const lienzo = document.createElement('canvas');
+  lienzo.width = 16; lienzo.height = 16;
+  lienzo.style.imageRendering = 'pixelated';
+  if (tamCss) { lienzo.style.width = tamCss + 'px'; lienzo.style.height = tamCss + 'px'; }
+  const ctx = lienzo.getContext('2d');
+  // Copia de la plantilla para poder aplicar capas
+  const filas = CUERPO_BASE.map(f => f.split(''));
+  const capas = [cfg.peinado, ...(cfg.accesorios || [])].filter(Boolean);
+  capas.forEach(nombre => {
+    const capa = CAPAS[nombre];
+    if (!capa) return;
+    Object.keys(capa).forEach(i => {
+      capa[i].split('').forEach((c, j) => { if (c !== '.') filas[i][j] = c; });
+    });
+  });
+  // Paleta propia del personaje + colores fijos
+  const paleta = Object.assign({}, COLORES_FIJOS, {
+    H: cfg.pelo, S: cfg.piel, O: cfg.ropa, A: cfg.acento, P: cfg.pantalon, B: cfg.zapatos, C: cfg.gorra || cfg.acento
+  });
+  filas.forEach((fila, y) => fila.forEach((c, x) => {
+    if (c === '.' || !paleta[c]) return;
+    ctx.fillStyle = paleta[c];
+    ctx.fillRect(x, y, 1, 1);
+  }));
+  return lienzo;
+}
+
+// Opciones para generar personajes al azar
+const PIELES = ['#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#a0612b', '#8d5524'];
+const PELOS = ['#1c1c1c', '#2b1b0e', '#5a3825', '#8b2e16', '#b8860b', '#cfcfcf'];
+const PEINADOS = ['', 'largo', 'calvo', 'mono', ''];
+const ROPA_POR_BANDO = {
+  gobierno: { ropa: ['#1e3a8a', '#1e40af', '#172554', '#2b4c9b'], pantalon: '#0f172a', acento: ['#f4c430', '#dc2626', '#93c5fd'] },
+  sindicato: { ropa: ['#556b2f', '#6b8e23', '#4d7c0f', '#3f6212'], pantalon: '#3b3b3b', acento: ['#dc2626', '#facc15', '#f97316'] },
+  neutral: { ropa: ['#6b7280', '#4b5563', '#9ca3af', '#57534e'], pantalon: '#27272a', acento: ['#f4c430', '#e5e7eb', '#a78bfa'] }
+};
+const ACCESORIOS_POR_BANDO = {
+  gobierno: ['corbata', 'maletin', 'lentes', 'carpeta', 'calculadora', 'microfono'],
+  sindicato: ['casco', 'bandana', 'megafono', 'pancarta', 'chaleco', 'lentes'],
+  neutral: ['carpeta', 'lentes', 'medalla', 'microfono', 'gorra', 'mazo']
+};
+
+/** Elige un elemento al azar de un arreglo. */
+function azar(arr) { return arr[enteroAleatorio(arr.length)]; }
+
+/** Crea la configuración de un personaje aleatorio según su bando. */
+function spriteAleatorio(bando) {
+  const r = ROPA_POR_BANDO[bando] || ROPA_POR_BANDO.neutral;
+  const accs = fisherYates(ACCESORIOS_POR_BANDO[bando] || ACCESORIOS_POR_BANDO.neutral).slice(0, 2);
+  // Evita combinaciones que se pisan (dos sombreros o dos objetos en la misma mano)
+  const filtrados = [];
+  const ocupado = {};
+  const zona = { casco: 'cabeza', gorra: 'cabeza', bandana: 'cabeza', megafono: 'der', microfono: 'der', mazo: 'der',
+    carpeta: 'der', calculadora: 'der', pancarta: 'der', grafico: 'der', maletin: 'izq', libro: 'izq',
+    corbata: 'pecho', chaleco: 'pecho', medalla: 'pecho2', lentes: 'cara' };
+  accs.forEach(a => { const z = zona[a] || a; if (!ocupado[z]) { ocupado[z] = true; filtrados.push(a); } });
+  return {
+    piel: azar(PIELES), pelo: azar(PELOS), peinado: ocupado.cabeza ? '' : azar(PEINADOS),
+    ropa: azar(r.ropa), acento: azar(r.acento), pantalon: r.pantalon, zapatos: '#1f1f1f', accesorios: filtrados
+  };
+}
+
+/* =====================================================================
+   2. DATOS: ROLES POR DEFECTO
+   Todo es editable desde el botón "⚙️ Roles" y se guarda en el navegador.
+   ===================================================================== */
+const ROLES_POR_DEFECTO = [
+  // ---------- NEUTRALES ----------
+  { id: 'conciliador', nombre: 'Conciliador/a', bando: 'neutral', esencial: true,
+    descripcion: 'Modera la mesa: da y quita la palabra, ordena los turnos, propone puntos de encuentro y busca que ambas partes firmen un acuerdo.',
+    secreto: 'Lograr que cada bando ceda al menos en un punto antes del cierre.',
+    sprite: { piel: '#e0ac69', pelo: '#cfcfcf', peinado: 'calvo', ropa: '#4b5563', acento: '#f4c430', pantalon: '#27272a', zapatos: '#1f1f1f', accesorios: ['corbata', 'mazo'] } },
+  { id: 'relator', nombre: 'Relator/a de Actas', bando: 'neutral',
+    descripcion: 'Registra cada propuesta, acuerdo y desacuerdo. Al final lee el acta en voz alta para que ambas partes la validen.',
+    secreto: 'Detectar una contradicción entre lo dicho al inicio y al final, y señalarla con tacto.',
+    sprite: { piel: '#f1c27d', pelo: '#5a3825', peinado: 'mono', ropa: '#6b7280', acento: '#e5e7eb', pantalon: '#27272a', zapatos: '#1f1f1f', accesorios: ['lentes', 'carpeta'] } },
+  { id: 'observador', nombre: 'Observador/a Internacional', bando: 'neutral',
+    descripcion: 'Vela por el respeto de los derechos laborales y del diálogo. No vota, pero al cierre entrega una evaluación pública de la negociación.',
+    secreto: 'Poner una "nota" del 1 al 10 a cada bando y justificarla en una frase.',
+    sprite: { piel: '#8d5524', pelo: '#1c1c1c', peinado: '', ropa: '#57534e', acento: '#a78bfa', pantalon: '#27272a', zapatos: '#1f1f1f', accesorios: ['medalla', 'carpeta'] } },
+  { id: 'periodista', nombre: 'Periodista', bando: 'neutral',
+    descripcion: 'Representa a la opinión pública. En los recesos puede entrevistar a cualquiera y hacer preguntas incómodas.',
+    secreto: 'Conseguir una declaración "titular" de cada bando.',
+    sprite: { piel: '#ffdbac', pelo: '#8b2e16', peinado: '', ropa: '#9ca3af', acento: '#dc2626', gorra: '#dc2626', pantalon: '#27272a', zapatos: '#1f1f1f', accesorios: ['gorra', 'microfono'] } },
+
+  // ---------- GOBIERNO ----------
+  { id: 'ministro', nombre: 'Ministro/a de Trabajo', bando: 'gobierno',
+    descripcion: 'Lidera la delegación oficial. Abre y cierra las intervenciones del Gobierno y tiene la última palabra sobre lo que se firma.',
+    secreto: 'Cerrar un acuerdo antes del final sin superar el presupuesto fijado por Hacienda.',
+    sprite: { piel: '#f1c27d', pelo: '#cfcfcf', peinado: '', ropa: '#172554', acento: '#f4c430', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['corbata', 'maletin'] } },
+  { id: 'hacienda', nombre: 'Viceministro/a de Hacienda', bando: 'gobierno',
+    descripcion: 'Guarda la calculadora: estima cuánto cuesta cada propuesta y advierte si el presupuesto no alcanza.',
+    secreto: 'No aceptar ningún aumento sin pedir algo a cambio (productividad, plazos, metas).',
+    sprite: { piel: '#c68642', pelo: '#1c1c1c', peinado: 'largo', ropa: '#1e40af', acento: '#93c5fd', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['lentes', 'calculadora'] } },
+  { id: 'juridico', nombre: 'Asesor/a Jurídico/a', bando: 'gobierno',
+    descripcion: 'Revisa que todo lo acordado respete la ley laboral y la Constitución. Puede objetar cláusulas.',
+    secreto: 'Señalar al menos una propuesta como "jurídicamente inviable" y ofrecer una alternativa.',
+    sprite: { piel: '#ffdbac', pelo: '#2b1b0e', peinado: '', ropa: '#1e3a8a', acento: '#dc2626', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['lentes', 'libro', 'corbata'] } },
+  { id: 'vocero-gob', nombre: 'Vocero/a del Gobierno', bando: 'gobierno',
+    descripcion: 'Comunica la postura oficial y cuida la imagen pública del Gobierno ante la prensa.',
+    secreto: 'Repetir tres veces la frase "diálogo responsable" sin que se note.',
+    sprite: { piel: '#e0ac69', pelo: '#b8860b', peinado: 'largo', ropa: '#2b4c9b', acento: '#f4c430', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['microfono'] } },
+  { id: 'analista', nombre: 'Analista Económico/a', bando: 'gobierno',
+    descripcion: 'Aporta datos: inflación, empleo, productividad, costo fiscal. Respalda con números cada argumento del Gobierno.',
+    secreto: 'Usar al menos tres cifras (inventadas para el juego) para defender la postura.',
+    sprite: { piel: '#a0612b', pelo: '#2b1b0e', peinado: 'mono', ropa: '#1e3a8a', acento: '#93c5fd', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['grafico'] } },
+  { id: 'gabinete', nombre: 'Jefe/a de Gabinete', bando: 'gobierno',
+    descripcion: 'Coordina la estrategia interna de la delegación y es quien puede pedir un receso al conciliador.',
+    secreto: 'Pedir un receso justo en el momento de mayor tensión.',
+    sprite: { piel: '#f1c27d', pelo: '#5a3825', peinado: 'calvo', ropa: '#172554', acento: '#dc2626', pantalon: '#0f172a', zapatos: '#1f1f1f', accesorios: ['corbata', 'carpeta'] } },
+
+  // ---------- SINDICATO ----------
+  { id: 'secretario', nombre: 'Secretario/a General', bando: 'sindicato',
+    descripcion: 'Líder y voz principal del sindicato. Presenta el pliego de peticiones y decide si se acepta o rechaza una oferta.',
+    secreto: 'Lograr al menos dos de las tres demandas principales.',
+    sprite: { piel: '#c68642', pelo: '#1c1c1c', peinado: '', ropa: '#556b2f', acento: '#dc2626', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['bandana', 'megafono'] } },
+  { id: 'delegado', nombre: 'Delegado/a de Base', bando: 'sindicato',
+    descripcion: 'Trabaja en el día a día junto a sus compañeros. Trae testimonios reales y recuerda a quién representa la mesa.',
+    secreto: 'Contar la historia de un trabajador (ficticio) que conmueva a la mesa.',
+    sprite: { piel: '#ffdbac', pelo: '#8b2e16', peinado: 'largo', ropa: '#6b8e23', acento: '#facc15', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['casco', 'pancarta'] } },
+  { id: 'abogado-sind', nombre: 'Abogado/a Laboral', bando: 'sindicato',
+    descripcion: 'Defiende los derechos adquiridos y revisa la "letra chica" de cada propuesta del Gobierno.',
+    secreto: 'Rechazar cualquier cláusula que reduzca un derecho ya existente.',
+    sprite: { piel: '#e0ac69', pelo: '#2b1b0e', peinado: 'mono', ropa: '#4d7c0f', acento: '#dc2626', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['lentes', 'maletin'] } },
+  { id: 'tesorero', nombre: 'Tesorero/a Sindical', bando: 'sindicato',
+    descripcion: 'Conoce las finanzas del gremio y el fondo de huelga. Evalúa cuánto tiempo puede resistir el sindicato.',
+    secreto: 'Insinuar que el fondo de huelga alcanza para semanas (sea o no cierto).',
+    sprite: { piel: '#8d5524', pelo: '#cfcfcf', peinado: 'calvo', ropa: '#3f6212', acento: '#facc15', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['calculadora'] } },
+  { id: 'vocero-sind', nombre: 'Vocero/a Sindical', bando: 'sindicato',
+    descripcion: 'Lleva la voz del sindicato a los medios y a las bases. Mantiene informados a los afiliados.',
+    secreto: 'Amenazar (con cortesía) con convocar a una rueda de prensa.',
+    sprite: { piel: '#f1c27d', pelo: '#b8860b', peinado: '', ropa: '#556b2f', acento: '#f97316', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['bandana', 'microfono'] } },
+  { id: 'seguridad', nombre: 'Delegado/a de Seguridad Laboral', bando: 'sindicato',
+    descripcion: 'Pone sobre la mesa las condiciones de trabajo, la salud y la prevención de accidentes.',
+    secreto: 'Incluir una mejora de seguridad o salud en el acuerdo final.',
+    sprite: { piel: '#a0612b', pelo: '#1c1c1c', peinado: '', ropa: '#4d7c0f', acento: '#f97316', pantalon: '#3b3b3b', zapatos: '#1f1f1f', accesorios: ['casco', 'chaleco'] } }
+];
+
+// Roles de "relleno" cuando hay más estudiantes que roles definidos
+const RELLENO = {
+  gobierno: {
+    nombre: 'Asesor/a del Gobierno',
+    descripcion: 'Apoya a la delegación oficial: investiga, sugiere argumentos en voz baja y vota en las decisiones internas del bando.',
+    secretos: ['Proponer una idea creativa que su bando termine adoptando.', 'Encontrar un punto débil en el argumento del sindicato.',
+      'Convencer al Ministro/a de ceder en algo pequeño.', 'Hacer una pregunta que deje pensando al otro bando.']
+  },
+  sindicato: {
+    nombre: 'Integrante de Base',
+    descripcion: 'Trabajador/a afiliado/a: respalda a la dirigencia, aporta ideas y puede pedir la palabra a través del Secretario/a General.',
+    secretos: ['Pedir que se vote en asamblea antes de aceptar cualquier oferta.', 'Aportar un dato o ejemplo que fortalezca una demanda.',
+      'Animar a su bando con un aplauso en el momento justo.', 'Proponer una contraoferta intermedia.']
+  }
+};
+
+// Cartas de giro (eventos ficticios para dinamizar la negociación)
+const CARTAS = [
+  { e: '📰', t: 'Filtración', d: 'La prensa publica que el Gobierno tendría un fondo de reserva. El Gobierno debe responder en 30 segundos.' },
+  { e: '⛔', t: 'Paro de 24 horas', d: 'El sindicato anuncia un paro. Gana presión, pero la opinión pública se molesta: el sindicato debe ofrecer un gesto.' },
+  { e: '📉', t: 'Dato económico', d: 'Sube la inflación (dato ficticio). Todas las cifras sobre la mesa deben revisarse.' },
+  { e: '🗳️', t: 'Elecciones cerca', d: 'Faltan pocos meses para las elecciones: el Gobierno necesita una "foto de acuerdo" pronto.' },
+  { e: '🤝', t: 'Gesto de buena fe', d: 'El bando que tiene la palabra debe ceder en un punto menor.' },
+  { e: '⏸️', t: 'Receso relámpago', d: '1 minuto de receso: cada bando se reúne en secreto para redefinir su estrategia.' },
+  { e: '🎤', t: 'Rueda de prensa', d: 'Cada vocero tiene 30 segundos para hablarle directamente al público (la clase).' },
+  { e: '🧾', t: 'Auditoría', d: 'Hacienda debe presentar el costo estimado de la última propuesta.' },
+  { e: '🔄', t: 'Cambio de silla', d: 'El conciliador elige a alguien que deberá defender la postura contraria durante 1 minuto.' },
+  { e: '🌧️', t: 'Emergencia', d: 'Un temporal obliga a destinar parte del presupuesto a emergencias. La oferta se reduce o se posterga.' },
+  { e: '📢', t: 'Presión de las bases', d: 'Los afiliados exigen una victoria simbólica hoy mismo o amenazan con desconocer a la dirigencia.' },
+  { e: '⚖️', t: 'Fallo judicial', d: 'Un tribunal (ficticio) declara válida una de las demandas sindicales. ¿Cómo se adapta el Gobierno?' },
+  { e: '🕵️', t: 'Objetivo expuesto', d: 'El conciliador puede pedir a una persona que revele su objetivo secreto… o que pague con una concesión.' },
+  { e: '🍕', t: 'Pausa con pizza', d: 'Clima distendido: la tensión baja 2 niveles y cada bando dice algo positivo del otro.' }
+];
+
+// Escenarios ficticios para negociar
+const ESCENARIOS = [
+  { t: 'Docentes de Valle Alto', c: 'El magisterio municipal se declara en estado de alerta.',
+    dem: ['Aumento salarial del 15%', 'Máximo 30 estudiantes por aula', 'Bono anual para material didáctico'],
+    of: 'Aumento del 5% y una mesa técnica sobre el tamaño de los cursos.' },
+  { t: 'Transporte público "MetroSur"', c: 'Conductores amenazan con detener los buses en hora punta.',
+    dem: ['Aumento salarial del 12%', 'Turnos de máximo 8 horas', 'Seguro de salud complementario'],
+    of: 'Aumento del 4% y revisar los turnos en 6 meses.' },
+  { t: 'Hospital Regional del Norte', c: 'El personal de salud denuncia sobrecarga de trabajo.',
+    dem: ['Contratar 200 profesionales de enfermería', 'Aumento del 10%', 'Pago de horas extra atrasadas'],
+    of: '50 contrataciones y un aumento del 3%.' },
+  { t: 'Recolección municipal de residuos', c: 'Los recolectores exigen mejores condiciones tras varios accidentes.',
+    dem: ['Equipos de protección certificados', 'Aumento del 9%', 'Contratos indefinidos'],
+    of: 'Equipos de protección, aumento del 3% y contratos por un año.' }
+];
+
+const FASES = ['Apertura y presentaciones', 'Pliego de peticiones', 'Contrapropuesta del Gobierno',
+  'Debate y regateo', 'Receso estratégico', 'Propuesta final', 'Firma del acta (o fracaso)'];
+
+const NOMBRES_DEMO = ['Camila (demo)', 'Mateo (demo)', 'Valentina (demo)', 'Benjamín (demo)', 'Isidora (demo)',
+  'Tomás (demo)', 'Josefa (demo)', 'Agustín (demo)', 'Florencia (demo)', 'Lucas (demo)', 'Antonia (demo)', 'Martín (demo)'];
+
+/* =====================================================================
+   3. ESTADO DE LA APLICACIÓN + PERSISTENCIA (localStorage)
+   ===================================================================== */
+const CLAVE_ALMACEN = 'mesaConciliacionArcade.v1';
+const MAX_PARTICIPANTES = 80;
+const MAX_LARGO_NOMBRE = 40;
+
+const estado = {
+  participantes: [],
+  roles: clonar(ROLES_POR_DEFECTO),
+  asignaciones: [],     // [{nombre, rol}] en el orden en que se revelan
+  revelados: 0,
+  sonido: true,
+  tension: 2,
+  fase: 0,
+  mazoCartas: []
+};
+
+function clonar(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+/** Guarda en el navegador (si está disponible; en modo privado puede fallar). */
+function guardar() {
+  try {
+    localStorage.setItem(CLAVE_ALMACEN, JSON.stringify({
+      participantes: estado.participantes, roles: estado.roles, sonido: estado.sonido
+    }));
+  } catch (e) { /* sin almacenamiento: la app sigue funcionando en memoria */ }
+}
+
+function cargar() {
+  try {
+    const datos = JSON.parse(localStorage.getItem(CLAVE_ALMACEN) || 'null');
+    if (!datos) return;
+    if (Array.isArray(datos.participantes)) estado.participantes = datos.participantes.filter(n => typeof n === 'string').slice(0, MAX_PARTICIPANTES);
+    if (Array.isArray(datos.roles) && datos.roles.length) estado.roles = datos.roles;
+    if (typeof datos.sonido === 'boolean') estado.sonido = datos.sonido;
+  } catch (e) { /* datos corruptos o sin acceso: se usan los valores por defecto */ }
+}
+
+/* =====================================================================
+   4. ALEATORIEDAD: Fisher-Yates con crypto si está disponible
+   ===================================================================== */
+function enteroAleatorio(max) {
+  if (window.crypto && crypto.getRandomValues) {
+    // Muestreo sin sesgo: descarta valores fuera del rango múltiplo de max
+    const limite = Math.floor(0x100000000 / max) * max;
+    const buf = new Uint32Array(1);
+    do { crypto.getRandomValues(buf); } while (buf[0] >= limite);
+    return buf[0] % max;
+  }
+  return Math.floor(Math.random() * max);
+}
+
+/** Mezcla Fisher-Yates: devuelve una COPIA mezclada del arreglo. */
+function fisherYates(arreglo) {
+  const a = arreglo.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = enteroAleatorio(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* =====================================================================
+   5. SONIDO 8-BIT con Web Audio (sin archivos)
+   ===================================================================== */
+let audioCtx = null;
+function tono(frec, dur = .08, tipo = 'square', vol = .05, retraso = 0) {
+  if (!estado.sonido) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime + retraso;
+    const osc = audioCtx.createOscillator();
+    const gan = audioCtx.createGain();
+    osc.type = tipo; osc.frequency.setValueAtTime(frec, t);
+    gan.gain.setValueAtTime(vol, t);
+    gan.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    osc.connect(gan).connect(audioCtx.destination);
+    osc.start(t); osc.stop(t + dur + .02);
+  } catch (e) { /* navegador sin Web Audio */ }
+}
+const SONIDOS = {
+  moneda: () => { tono(988, .07); tono(1319, .25, 'square', .05, .07); },
+  clic: () => tono(660, .04, 'square', .03),
+  error: () => { tono(200, .12, 'sawtooth', .05); tono(150, .2, 'sawtooth', .05, .12); },
+  tic: () => tono(440 + Math.random() * 400, .03, 'square', .025),
+  revelar: () => [523, 659, 784].forEach((f, i) => tono(f, .1, 'square', .045, i * .07)),
+  fanfarria: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tono(f, .14, 'square', .05, i * .11)),
+  alarma: () => { for (let i = 0; i < 6; i++) tono(i % 2 ? 660 : 880, .15, 'square', .06, i * .18); },
+  carta: () => { tono(300, .05, 'triangle', .06); tono(600, .08, 'triangle', .06, .05); }
+};
+
+/* =====================================================================
+   6. UTILIDADES DE INTERFAZ
+   ===================================================================== */
+const $ = sel => document.querySelector(sel);
+function crear(etiqueta, clase, texto) {
+  const el = document.createElement(etiqueta);
+  if (clase) el.className = clase;
+  if (texto !== undefined) el.textContent = texto; // textContent: evita inyectar HTML con los nombres
+  return el;
+}
+let temporizadorToast = null;
+function avisar(texto) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = crear('div', 'toast', texto);
+  t.setAttribute('role', 'status');
+  document.body.appendChild(t);
+  clearTimeout(temporizadorToast);
+  temporizadorToast = setTimeout(() => t.remove(), 2600);
+}
+const ETIQUETA_BANDO = { gobierno: 'Gobierno', sindicato: 'Sindicato', neutral: 'Neutral' };
+const ICONO_BANDO = { gobierno: '🏛️', sindicato: '✊', neutral: '⚖️' };
+
+/* =====================================================================
+   7. NAVEGACIÓN ENTRE PANTALLAS
+   ===================================================================== */
+const PANTALLAS = ['inicio', 'sorteo', 'revelacion'];
+function irA(nombre) {
+  PANTALLAS.forEach(p => $('#pantalla-' + p).classList.toggle('oculto', p !== nombre));
+  estado.pantalla = nombre;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (nombre === 'inicio') renderInicio();
+  if (nombre === 'sorteo') renderSorteo();
+}
+
+/* =====================================================================
+   8. PANTALLA DE INICIO: registro y validación de participantes
+   ===================================================================== */
+
+/** Limpia espacios y valida un nombre. Devuelve {ok, nombre, error}. */
+function validarNombre(texto) {
+  const nombre = String(texto || '').replace(/\s+/g, ' ').trim();
+  if (!nombre) return { ok: false, error: 'El nombre está vacío.' };
+  if (nombre.length > MAX_LARGO_NOMBRE) return { ok: false, error: `"${nombre.slice(0, 20)}…" supera los ${MAX_LARGO_NOMBRE} caracteres.` };
+  if (!/[\p{L}\p{N}]/u.test(nombre)) return { ok: false, error: `"${nombre}" no parece un nombre válido.` };
+  const clave = nombre.toLocaleLowerCase('es');
+  if (estado.participantes.some(p => p.toLocaleLowerCase('es') === clave)) return { ok: false, error: `"${nombre}" ya está en la lista.` };
+  if (estado.participantes.length >= MAX_PARTICIPANTES) return { ok: false, error: `Máximo ${MAX_PARTICIPANTES} participantes.` };
+  return { ok: true, nombre };
+}
+
+/** Agrega varios nombres (separados por líneas). Informa cuántos entraron. */
+function agregarNombres(lineas) {
+  let agregados = 0;
+  const errores = [];
+  lineas.forEach(linea => {
+    if (!linea.trim()) return; // las líneas vacías se ignoran sin error
+    const r = validarNombre(linea);
+    if (r.ok) { estado.participantes.push(r.nombre); agregados++; }
+    else errores.push(r.error);
+  });
+  guardar();
+  renderInicio();
+  const msg = $('#mensaje-registro');
+  if (errores.length) {
+    msg.className = 'mensaje error';
+    msg.textContent = (agregados ? `✔ ${agregados} agregado(s). ` : '') + '⚠ ' + errores.slice(0, 3).join(' ') + (errores.length > 3 ? ` (+${errores.length - 3} más)` : '');
+    SONIDOS.error();
+  } else if (agregados) {
+    msg.className = 'mensaje ok';
+    msg.textContent = `✔ ${agregados} participante(s) agregado(s).`;
+    SONIDOS.moneda();
+  }
+  return agregados;
+}
+
+function renderInicio() {
+  const lista = $('#lista-participantes');
+  lista.replaceChildren();
+  if (!estado.participantes.length) {
+    lista.appendChild(crear('span', 'vacio', 'Todavía no hay jugadores. ¡Agrega el primero!'));
+  }
+  estado.participantes.forEach((nombre, i) => {
+    const chip = crear('span', 'chip');
+    chip.appendChild(crear('span', '', nombre));
+    const quitar = crear('button', '', '×');
+    quitar.setAttribute('aria-label', 'Quitar a ' + nombre);
+    quitar.title = 'Quitar';
+    quitar.addEventListener('click', () => {
+      estado.participantes.splice(i, 1);
+      guardar(); renderInicio(); SONIDOS.clic();
+    });
+    chip.appendChild(quitar);
+    lista.appendChild(chip);
+  });
+  const n = estado.participantes.length;
+  $('#contador').textContent = n;
+  const puede = n >= 2;
+  $('#btn-comenzar').disabled = !puede;
+  $('#ayuda-comenzar').textContent = puede
+    ? `${n} jugadores listos. ${n > totalRolesDefinidos() ? 'Hay más jugadores que roles: se agregarán asesores e integrantes de base.' : ''}`
+    : (n === 1 ? 'Falta 1 participante más para comenzar.' : 'Agrega al menos 2 participantes para comenzar.');
+  $('#btn-volver-resultados').classList.toggle('oculto', !estado.asignaciones.length);
+  actualizarHud();
+}
+
+function totalRolesDefinidos() { return estado.roles.length; }
+
+function actualizarHud() {
+  $('#hud').textContent = 'JUGADORES ' + String(estado.participantes.length).padStart(2, '0');
+}
+
+/** Dibuja el desfile de personajes de la portada. */
+function renderArena() {
+  const arena = $('#arena');
+  arena.replaceChildren();
+  const porBando = b => estado.roles.filter(r => r.bando === b).slice(0, 3);
+  const lado = (roles) => {
+    const div = crear('div', 'lado');
+    roles.forEach((r, i) => {
+      const c = dibujarSprite(r.sprite, window.innerWidth < 600 ? 44 : 72);
+      c.classList.add('sprite-salta');
+      c.style.animationDelay = (i * .25) + 's';
+      c.title = r.nombre;
+      div.appendChild(c);
+    });
+    return div;
+  };
+  const gob = lado(porBando('gobierno'));
+  const sind = lado(porBando('sindicato'));
+  // El sindicato mira hacia el gobierno: lo reflejamos horizontalmente
+  sind.querySelectorAll('canvas').forEach(c => { c.style.transform = 'scaleX(-1)'; });
+  const centro = crear('div', 'lado');
+  const neutral = estado.roles.find(r => r.bando === 'neutral');
+  if (neutral) {
+    const col = crear('div');
+    col.style.cssText = 'display:flex;flex-direction:column;align-items:center';
+    const c = dibujarSprite(neutral.sprite, window.innerWidth < 600 ? 44 : 72);
+    c.classList.add('sprite-salta');
+    col.appendChild(c);
+    col.appendChild(crear('div', 'mesa-pixel'));
+    centro.appendChild(col);
+  } else {
+    centro.appendChild(crear('div', 'mesa-pixel'));
+  }
+  arena.append(gob, centro, sind);
+}
+
+/* =====================================================================
+   9. SELECCIÓN DE ROLES SEGÚN LA CANTIDAD DE PARTICIPANTES
+   Orden: esenciales (si hay ≥3 jugadores) → alternar Gobierno/Sindicato,
+   con un neutral cada dos parejas → relleno equilibrado por bando.
+   ===================================================================== */
+function seleccionarRoles(n) {
+  const roles = estado.roles.map(r => Object.assign({}, r));
+  const elegidos = [];
+  const usados = new Set();
+  const tomar = r => { if (r && !usados.has(r) && elegidos.length < n) { usados.add(r); elegidos.push(r); } };
+
+  if (n >= 3) roles.filter(r => r.esencial).forEach(tomar);
+
+  const gob = roles.filter(r => r.bando === 'gobierno' && !usados.has(r));
+  const sind = roles.filter(r => r.bando === 'sindicato' && !usados.has(r));
+  const neu = roles.filter(r => r.bando === 'neutral' && !usados.has(r));
+  let parejas = 0;
+  while (elegidos.length < n && (gob.length || sind.length || neu.length)) {
+    tomar(gob.shift());
+    tomar(sind.shift());
+    parejas++;
+    // Un neutral cada dos parejas (o si ya no quedan roles de bandos)
+    if ((parejas % 2 === 0 || (!gob.length && !sind.length)) && n >= 3) tomar(neu.shift());
+    if (n < 3 && !gob.length && !sind.length) tomar(neu.shift());
+  }
+
+  // Relleno: siempre al bando con menos integrantes (empate → Gobierno)
+  const contadores = { gobierno: 0, sindicato: 0 };
+  elegidos.forEach(r => { if (contadores[r.bando] !== undefined) contadores[r.bando]++; });
+  const numeracion = { gobierno: 0, sindicato: 0 };
+  while (elegidos.length < n) {
+    const bando = contadores.gobierno <= contadores.sindicato ? 'gobierno' : 'sindicato';
+    contadores[bando]++;
+    numeracion[bando]++;
+    const base = RELLENO[bando];
+    elegidos.push({
+      id: 'relleno-' + bando + '-' + numeracion[bando],
+      nombre: base.nombre + ' #' + numeracion[bando],
+      bando,
+      descripcion: base.descripcion,
+      secreto: azar(base.secretos),
+      sprite: spriteAleatorio(bando),
+      relleno: true
+    });
+  }
+  return elegidos;
+}
+
+/* =====================================================================
+   10. PANTALLA DE SORTEO
+   ===================================================================== */
+function renderSorteo() {
+  const n = estado.participantes.length;
+  const roles = seleccionarRoles(n);
+  const cuenta = contarBandos(roles);
+  $('#resumen-sorteo').textContent =
+    `${n} jugadores · ${cuenta.gobierno} Gobierno · ${cuenta.sindicato} Sindicato · ${cuenta.neutral} Neutral. Estos son los roles en juego:`;
+  const vp = $('#vista-previa');
+  vp.replaceChildren();
+  roles.forEach(r => {
+    const cupo = crear('span', 'cupo ' + r.bando);
+    cupo.appendChild(dibujarSprite(r.sprite));
+    cupo.appendChild(crear('span', '', r.nombre));
+    vp.appendChild(cupo);
+  });
+}
+
+function contarBandos(lista) {
+  const c = { gobierno: 0, sindicato: 0, neutral: 0 };
+  lista.forEach(r => { if (c[r.bando] !== undefined) c[r.bando]++; });
+  return c;
+}
+
+/** Asigna roles: mezcla participantes con Fisher-Yates y empareja. */
+function asignarRoles() {
+  const n = estado.participantes.length;
+  if (n < 2) { avisar('Se necesitan al menos 2 participantes.'); irA('inicio'); return; }
+  const roles = seleccionarRoles(n);
+  const mezclados = fisherYates(estado.participantes);
+  const pares = mezclados.map((nombre, i) => ({ nombre, rol: roles[i] }));
+  // El orden de revelación también es aleatorio, para mantener el suspenso
+  estado.asignaciones = fisherYates(pares);
+  estado.revelados = 0;
+  actualizarMarcador();
+  animacionSorteo().then(() => {
+    irA('revelacion');
+    renderRevelacion();
+    lanzarConfeti(120);
+    SONIDOS.fanfarria();
+  });
+}
+
+/** Animación tipo tragamonedas: va desacelerando hasta detenerse. */
+function animacionSorteo() {
+  return new Promise(resolver => {
+    const overlay = $('#overlay-sorteo');
+    const rodillo = $('#rodillo');
+    overlay.classList.remove('oculto');
+    const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let paso = 0;
+    const totalPasos = reducido ? 3 : 26;
+    const girar = () => {
+      const a = azar(estado.asignaciones);
+      const p = azar(estado.participantes);
+      rodillo.replaceChildren();
+      const cont = crear('div', 'r-anim');
+      cont.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:.3rem';
+      cont.appendChild(dibujarSprite(a.rol.sprite));
+      cont.appendChild(crear('div', 'r-nombre', p));
+      cont.appendChild(crear('div', 'r-rol', a.rol.nombre));
+      rodillo.appendChild(cont);
+      SONIDOS.tic();
+      paso++;
+      if (paso < totalPasos) {
+        // Cada vuelta tarda un poco más (efecto de frenado)
+        setTimeout(girar, 45 + paso * paso * 0.55);
+      } else {
+        rodillo.replaceChildren(crear('div', 'r-nombre', '¡LISTO! 🎉'));
+        setTimeout(() => { overlay.classList.add('oculto'); resolver(); }, reducido ? 200 : 650);
+      }
+    };
+    girar();
+  });
+}
+
+/* =====================================================================
+   11. PANTALLA DE REVELACIÓN
+   ===================================================================== */
+
+/** Construye una tarjeta de rol. variante: 'grande' | 'compacta' */
+function crearTarjeta(asig, variante) {
+  const r = asig.rol;
+  const t = crear('article', `tarjeta ${r.bando} ${variante}`);
+  t.setAttribute('aria-label', `${asig.nombre}: ${r.nombre}, bando ${ETIQUETA_BANDO[r.bando]}`);
+
+  const franja = crear('div', 'franja');
+  franja.appendChild(crear('span', '', `${ICONO_BANDO[r.bando]} Bando ${ETIQUETA_BANDO[r.bando]}`));
+  franja.appendChild(crear('span', 'insignia', r.relleno ? 'Refuerzo' : (r.esencial ? '★ Clave' : 'Rol')));
+  t.appendChild(franja);
+
+  const cuerpo = crear('div', 'cuerpo');
+  const marco = crear('div', 'marco-sprite');
+  const sprite = dibujarSprite(r.sprite, variante === 'grande' ? 200 : 64);
+  sprite.classList.add('sprite-salta');
+  marco.appendChild(sprite);
+  cuerpo.appendChild(marco);
+
+  const info = crear('div');
+  info.appendChild(crear('h3', 'nombre', asig.nombre));
+  info.appendChild(crear('div', 'rol', r.nombre));
+  info.appendChild(crear('p', 'descripcion', r.descripcion));
+
+  // Objetivo secreto: oculto hasta que el estudiante lo pida
+  if (r.secreto && $('#chk-secretos').checked) {
+    const sec = crear('div', 'secreto');
+    const boton = crear('button', 'btn-secreto', '🤫 Ver objetivo secreto');
+    const texto = crear('div', 'texto-secreto oculto', '🎯 ' + r.secreto);
+    boton.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const oculto = texto.classList.toggle('oculto');
+      boton.textContent = oculto ? '🤫 Ver objetivo secreto' : '🙈 Ocultar objetivo';
+      SONIDOS.clic();
+    });
+    sec.append(boton, texto);
+    info.appendChild(sec);
+  }
+  cuerpo.appendChild(info);
+  t.appendChild(cuerpo);
+  return t;
+}
+
+function renderRevelacion() {
+  const total = estado.asignaciones.length;
+  const hechos = estado.revelados;
+  const terminado = hechos >= total;
+
+  $('#texto-progreso').textContent = `${hechos} / ${total}`;
+  const barra = $('#barra-progreso');
+  barra.replaceChildren();
+  // Si hay muchos jugadores, la barra se agrupa para no desbordar
+  const segmentos = Math.min(total, 30);
+  for (let i = 0; i < segmentos; i++) {
+    const lleno = (i + 1) <= Math.round(hechos * segmentos / total);
+    barra.appendChild(crear('i', lleno ? 'lleno' : ''));
+  }
+
+  const cont = $('#contenedor-tarjeta');
+  cont.replaceChildren();
+  if (hechos === 0) {
+    cont.appendChild(crear('div', 'tarjeta-misterio', '?'));
+  } else {
+    cont.appendChild(crearTarjeta(estado.asignaciones[hechos - 1], 'grande'));
+  }
+
+  const mini = $('#mini-lista');
+  mini.replaceChildren();
+  estado.asignaciones.slice(0, hechos).forEach(a => {
+    const m = crear('span', 'mini ' + a.rol.bando);
+    m.appendChild(dibujarSprite(a.rol.sprite));
+    m.appendChild(crear('span', '', `${a.nombre} · ${a.rol.nombre}`));
+    mini.appendChild(m);
+  });
+
+  const btnSig = $('#btn-siguiente');
+  btnSig.textContent = hechos === 0 ? '▶ Revelar el primero' : (terminado ? '🏛️ Ver la mesa completa' : 'Siguiente ▶');
+  $('#btn-revelar-todo').classList.toggle('oculto', terminado);
+}
+
+function revelarSiguiente() {
+  const total = estado.asignaciones.length;
+  if (estado.revelados >= total) { mostrarMesa(); return; }
+  estado.revelados++;
+  SONIDOS.revelar();
+  renderRevelacion();
+  if (estado.revelados === total) {
+    lanzarConfeti(160);
+    setTimeout(SONIDOS.fanfarria, 250);
+  }
+}
+
+function revelarTodo() {
+  estado.revelados = estado.asignaciones.length;
+  SONIDOS.fanfarria();
+  lanzarConfeti(200);
+  mostrarMesa();
+}
+
+/** Vista final: tres columnas enfrentadas, como una mesa real. */
+function mostrarMesa() {
+  $('#modo-uno-a-uno').classList.add('oculto');
+  $('#modo-mesa').classList.remove('oculto');
+  $('#btn-ver-uno').classList.remove('oculto');
+  const mesa = $('#mesa');
+  mesa.replaceChildren();
+  ['gobierno', 'neutral', 'sindicato'].forEach(bando => {
+    const col = crear('div', 'columna-mesa ' + bando);
+    const lista = estado.asignaciones.filter(a => a.rol.bando === bando);
+    col.appendChild(crear('div', 'cabeza-columna ' + bando, `${ICONO_BANDO[bando]} ${ETIQUETA_BANDO[bando]} (${lista.length})`));
+    lista.forEach((a, i) => {
+      const t = crearTarjeta(a, 'compacta');
+      t.style.animationDelay = (i * 0.07) + 's';
+      col.appendChild(t);
+    });
+    if (!lista.length) col.appendChild(crear('p', 'vacio', 'Sin integrantes en este sorteo.'));
+    mesa.appendChild(col);
+  });
+}
+
+function mostrarUnoAUno() {
+  $('#modo-uno-a-uno').classList.remove('oculto');
+  $('#modo-mesa').classList.add('oculto');
+  $('#btn-ver-uno').classList.add('oculto');
+  renderRevelacion();
+}
+
+function actualizarMarcador() {
+  const c = contarBandos(estado.asignaciones.map(a => a.rol));
+  $('#cuenta-gob').textContent = c.gobierno;
+  $('#cuenta-sind').textContent = c.sindicato;
+  $('#cuenta-neu').textContent = c.neutral;
+}
+
+/* =====================================================================
+   12. CONFETI PIXELADO (canvas, sin librerías)
+   ===================================================================== */
+const lienzoConfeti = $('#confeti');
+const ctxConfeti = lienzoConfeti.getContext('2d');
+let particulas = [];
+let animandoConfeti = false;
+function lanzarConfeti(cantidad) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  lienzoConfeti.width = window.innerWidth;
+  lienzoConfeti.height = window.innerHeight;
+  const colores = ['#f4c430', '#3b82f6', '#7ba33a', '#ef4444', '#ffffff', '#a78bfa'];
+  for (let i = 0; i < cantidad; i++) {
+    particulas.push({
+      x: Math.random() * lienzoConfeti.width,
+      y: -20 - Math.random() * lienzoConfeti.height * .4,
+      vx: (Math.random() - .5) * 3,
+      vy: 2 + Math.random() * 3.5,
+      t: 6 + Math.floor(Math.random() * 3) * 3, // tamaños "pixel": 6, 9 o 12
+      c: colores[Math.floor(Math.random() * colores.length)],
+      vida: 0
+    });
+  }
+  if (!animandoConfeti) { animandoConfeti = true; requestAnimationFrame(cuadroConfeti); }
+}
+function cuadroConfeti() {
+  ctxConfeti.clearRect(0, 0, lienzoConfeti.width, lienzoConfeti.height);
+  particulas.forEach(p => {
+    p.x += p.vx + Math.sin((p.vida + p.x) / 20) * .6;
+    p.y += p.vy;
+    p.vida++;
+    ctxConfeti.fillStyle = p.c;
+    // Parpadeo de "giro": alterna ancho completo y mitad
+    const ancho = (Math.floor(p.vida / 6) % 2) ? p.t : p.t / 2;
+    ctxConfeti.fillRect(Math.round(p.x), Math.round(p.y), ancho, p.t);
+  });
+  particulas = particulas.filter(p => p.y < lienzoConfeti.height + 20 && p.vida < 400);
+  if (particulas.length) requestAnimationFrame(cuadroConfeti);
+  else { animandoConfeti = false; ctxConfeti.clearRect(0, 0, lienzoConfeti.width, lienzoConfeti.height); }
+}
+
+/* =====================================================================
+   13. PANEL LATERAL: cronómetro, tensión, cartas, fases, escenario
+   ===================================================================== */
+// --- Cronómetro de ronda ---
+const reloj = { total: 300, restante: 300, intervalo: null };
+function pintarReloj() {
+  const m = Math.floor(reloj.restante / 60), s = reloj.restante % 60;
+  const el = $('#reloj');
+  el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  el.classList.toggle('urgente', reloj.restante > 0 && reloj.restante <= 10 && !!reloj.intervalo);
+}
+function alternarReloj() {
+  if (reloj.intervalo) { pausarReloj(); return; }
+  if (reloj.restante <= 0) reloj.restante = reloj.total;
+  $('#btn-reloj').textContent = '⏸ Pausar';
+  SONIDOS.clic();
+  reloj.intervalo = setInterval(() => {
+    reloj.restante--;
+    if (reloj.restante <= 10 && reloj.restante > 0) SONIDOS.tic();
+    if (reloj.restante <= 0) {
+      reloj.restante = 0;
+      pausarReloj();
+      SONIDOS.alarma();
+      const el = $('#reloj');
+      el.classList.remove('alarma'); void el.offsetWidth; el.classList.add('alarma');
+      avisar('⏰ ¡Se acabó el tiempo de la ronda!');
+    }
+    pintarReloj();
+  }, 1000);
+  pintarReloj();
+}
+function pausarReloj() {
+  clearInterval(reloj.intervalo); reloj.intervalo = null;
+  $('#btn-reloj').textContent = '▶ Iniciar';
+  pintarReloj();
+}
+function fijarReloj(min) { pausarReloj(); reloj.total = reloj.restante = min * 60; pintarReloj(); SONIDOS.clic(); }
+
+// --- Termómetro de tensión (0 a 10) ---
+const CARAS = ['😌', '🙂', '🙂', '😐', '😐', '😕', '😠', '😠', '😡', '🤬', '💥'];
+const ETIQUETAS_TENSION = ['Calma total', 'Calma', 'Cordial', 'Atenta', 'Tirante', 'Tensa', 'Caliente', 'Muy caliente', '¡Al borde!', '¡Crisis!', '¡HUELGA!'];
+function pintarTension() {
+  const barra = $('#tension-barra');
+  barra.replaceChildren();
+  for (let i = 0; i < 10; i++) {
+    const seg = crear('i');
+    if (i < estado.tension) {
+      // De verde a rojo según el nivel
+      const tono = Math.round(120 - (i / 9) * 120);
+      seg.style.background = `hsl(${tono} 80% 50%)`;
+    }
+    barra.appendChild(seg);
+  }
+  $('#tension-cara').textContent = CARAS[estado.tension];
+  $('#tension-etiqueta').textContent = ETIQUETAS_TENSION[estado.tension];
+}
+function cambiarTension(delta) {
+  estado.tension = Math.max(0, Math.min(10, estado.tension + delta));
+  pintarTension();
+  tono(220 + estado.tension * 60, .08);
+  if (estado.tension === 10) { avisar('💥 ¡La mesa explota! El conciliador debe pedir receso.'); lanzarConfeti(40); }
+}
+
+// --- Cartas de giro (no se repiten hasta agotar el mazo) ---
+function sacarCarta() {
+  if (!estado.mazoCartas.length) estado.mazoCartas = fisherYates(CARTAS);
+  const carta = estado.mazoCartas.pop();
+  const el = $('#carta-evento');
+  el.replaceChildren(crear('span', 'emoji', carta.e), crear('h4', '', carta.t), crear('p', '', carta.d));
+  el.classList.remove('girar'); void el.offsetWidth; el.classList.add('girar');
+  SONIDOS.carta();
+}
+
+// --- Fases de la negociación ---
+function pintarFases() {
+  const ol = $('#fases');
+  ol.replaceChildren();
+  FASES.forEach((f, i) => {
+    const li = crear('li', i < estado.fase ? 'hecha' : (i === estado.fase ? 'actual' : ''));
+    const b = crear('button', '', (i < estado.fase ? '✔ ' : (i === estado.fase ? '▶ ' : `${i + 1}. `)) + f);
+    b.addEventListener('click', () => { estado.fase = i; pintarFases(); SONIDOS.clic(); });
+    li.appendChild(b);
+    ol.appendChild(li);
+  });
+  $('#btn-fase').textContent = estado.fase >= FASES.length - 1 ? '↺ Reiniciar fases' : 'Siguiente fase ▶';
+}
+function siguienteFase() {
+  estado.fase = estado.fase >= FASES.length - 1 ? 0 : estado.fase + 1;
+  pintarFases();
+  SONIDOS.revelar();
+  if (estado.fase === FASES.length - 1) avisar('✍️ Momento de la verdad: ¿se firma el acta?');
+}
+
+// --- Escenario ficticio ---
+let ultimoEscenario = -1;
+function sortearEscenario() {
+  let i;
+  do { i = enteroAleatorio(ESCENARIOS.length); } while (ESCENARIOS.length > 1 && i === ultimoEscenario);
+  ultimoEscenario = i;
+  const e = ESCENARIOS[i];
+  const cont = $('#texto-escenario');
+  const ul = crear('ul');
+  e.dem.forEach(d => ul.appendChild(crear('li', '', d)));
+  const pOferta = crear('p');
+  pOferta.append(crear('b', '', 'Oferta inicial del Gobierno: '), document.createTextNode(e.of));
+  cont.replaceChildren(
+    crear('h4', '', '📍 ' + e.t), crear('p', '', e.c), crear('b', '', 'Demandas del sindicato:'), ul, pOferta,
+    crear('p', 'nota', 'Caso y cifras ficticios, creados solo para el juego.')
+  );
+  SONIDOS.carta();
+}
+
+/* =====================================================================
+   14. EDITOR DE ROLES (modal)
+   ===================================================================== */
+let rolesBorrador = [];
+function abrirEditorRoles() {
+  rolesBorrador = clonar(estado.roles);
+  pintarEditorRoles();
+  $('#modal-roles').classList.remove('oculto');
+  $('#btn-cerrar-roles').focus();
+}
+function cerrarEditorRoles() { $('#modal-roles').classList.add('oculto'); }
+
+function pintarEditorRoles() {
+  const cont = $('#lista-roles-editor');
+  cont.replaceChildren();
+  rolesBorrador.forEach((r, i) => {
+    const fila = crear('div', 'fila-rol');
+
+    const colSprite = crear('div', 'mini-sprite');
+    colSprite.appendChild(dibujarSprite(r.sprite));
+    const btnDado = crear('button', 'btn btn-chico', '🎲');
+    btnDado.title = 'Cambiar personaje al azar';
+    btnDado.setAttribute('aria-label', 'Cambiar personaje de ' + r.nombre);
+    btnDado.addEventListener('click', () => { r.sprite = spriteAleatorio(r.bando); pintarEditorRoles(); SONIDOS.clic(); });
+    colSprite.appendChild(btnDado);
+
+    const colNombre = crear('div');
+    const inNombre = crear('input');
+    inNombre.type = 'text'; inNombre.value = r.nombre; inNombre.maxLength = 50;
+    inNombre.setAttribute('aria-label', 'Nombre del rol');
+    inNombre.addEventListener('input', () => { r.nombre = inNombre.value; });
+    const lblEs = crear('label', 'esencial');
+    const chkEs = crear('input'); chkEs.type = 'checkbox'; chkEs.checked = !!r.esencial;
+    chkEs.addEventListener('change', () => { r.esencial = chkEs.checked; });
+    lblEs.append(chkEs, document.createTextNode('Esencial (siempre se asigna)'));
+    colNombre.append(inNombre, lblEs);
+
+    const selBando = crear('select');
+    selBando.setAttribute('aria-label', 'Bando');
+    ['gobierno', 'sindicato', 'neutral'].forEach(b => {
+      const op = crear('option', '', ETIQUETA_BANDO[b]); op.value = b; if (r.bando === b) op.selected = true; selBando.appendChild(op);
+    });
+    selBando.addEventListener('change', () => { r.bando = selBando.value; r.sprite = spriteAleatorio(r.bando); pintarEditorRoles(); });
+
+    const inDesc = crear('textarea'); inDesc.value = r.descripcion || '';
+    inDesc.setAttribute('aria-label', 'Descripción del rol');
+    inDesc.addEventListener('input', () => { r.descripcion = inDesc.value; });
+    const inSec = crear('textarea'); inSec.value = r.secreto || '';
+    inSec.setAttribute('aria-label', 'Objetivo secreto');
+    inSec.addEventListener('input', () => { r.secreto = inSec.value; });
+
+    const botones = crear('div', 'botones-fila');
+    const mover = (delta, etiqueta, texto) => {
+      const b = crear('button', 'btn btn-chico', texto);
+      b.setAttribute('aria-label', etiqueta);
+      b.disabled = (i + delta < 0) || (i + delta >= rolesBorrador.length);
+      b.addEventListener('click', () => {
+        [rolesBorrador[i], rolesBorrador[i + delta]] = [rolesBorrador[i + delta], rolesBorrador[i]];
+        pintarEditorRoles();
+      });
+      return b;
+    };
+    const btnBorrar = crear('button', 'btn btn-chico btn-rojo', '🗑');
+    btnBorrar.setAttribute('aria-label', 'Eliminar rol ' + r.nombre);
+    btnBorrar.addEventListener('click', () => { rolesBorrador.splice(i, 1); pintarEditorRoles(); });
+    botones.append(mover(-1, 'Subir', '▲'), mover(1, 'Bajar', '▼'), btnBorrar);
+
+    fila.append(colSprite, colNombre, selBando, inDesc, inSec, botones);
+    cont.appendChild(fila);
+  });
+}
+
+function guardarRoles() {
+  const limpios = rolesBorrador
+    .map(r => Object.assign(r, { nombre: (r.nombre || '').trim(), descripcion: (r.descripcion || '').trim(), secreto: (r.secreto || '').trim() }))
+    .filter(r => r.nombre);
+  const tieneGob = limpios.some(r => r.bando === 'gobierno');
+  const tieneSind = limpios.some(r => r.bando === 'sindicato');
+  if (!tieneGob || !tieneSind) { avisar('⚠ Debe existir al menos un rol de Gobierno y uno de Sindicato.'); SONIDOS.error(); return; }
+  limpios.forEach((r, i) => { if (!r.id) r.id = 'rol-' + Date.now() + '-' + i; });
+  estado.roles = limpios;
+  guardar();
+  cerrarEditorRoles();
+  renderArena();
+  if (estado.pantalla === 'sorteo') renderSorteo();
+  renderInicio();
+  avisar('💾 Roles guardados. Se aplicarán en el próximo sorteo.');
+  SONIDOS.moneda();
+}
+
+/* =====================================================================
+   15. EVENTOS
+   ===================================================================== */
+function agregarDesdeCampo() {
+  const campo = $('#input-nombre');
+  if (!campo.value.trim()) { $('#mensaje-registro').className = 'mensaje error'; $('#mensaje-registro').textContent = '⚠ Escribe un nombre primero.'; SONIDOS.error(); campo.focus(); return; }
+  if (agregarNombres([campo.value])) campo.value = '';
+  campo.focus();
+}
+
+$('#btn-agregar').addEventListener('click', agregarDesdeCampo);
+$('#input-nombre').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregarDesdeCampo(); } });
+$('#btn-agregar-lista').addEventListener('click', () => {
+  const area = $('#input-lista');
+  if (!area.value.trim()) { $('#mensaje-registro').className = 'mensaje error'; $('#mensaje-registro').textContent = '⚠ Pega al menos un nombre (uno por línea).'; SONIDOS.error(); return; }
+  agregarNombres(area.value.split(/\r?\n/));
+  area.value = '';
+});
+$('#btn-demo').addEventListener('click', () => agregarNombres(NOMBRES_DEMO));
+$('#btn-vaciar').addEventListener('click', () => {
+  if (!estado.participantes.length) return;
+  if (!confirm('¿Vaciar toda la lista de participantes?')) return;
+  estado.participantes = [];
+  guardar(); renderInicio();
+  $('#mensaje-registro').textContent = '';
+});
+$('#btn-comenzar').addEventListener('click', () => {
+  if (estado.participantes.length < 2) { SONIDOS.error(); return; }
+  SONIDOS.moneda();
+  irA('sorteo');
+});
+$('#btn-volver-resultados').addEventListener('click', () => { irA('revelacion'); renderRevelacion(); });
+$('#btn-asignar').addEventListener('click', asignarRoles);
+$('#btn-volver-registro').addEventListener('click', () => irA('inicio'));
+$('#btn-editar-desde-sorteo').addEventListener('click', abrirEditorRoles);
+$('#btn-siguiente').addEventListener('click', revelarSiguiente);
+$('#btn-revelar-todo').addEventListener('click', revelarTodo);
+$('#btn-ver-uno').addEventListener('click', mostrarUnoAUno);
+$('#btn-reasignar').addEventListener('click', () => {
+  mostrarUnoAUno();
+  asignarRoles(); // conserva la lista de participantes
+});
+$('#btn-reiniciar').addEventListener('click', () => {
+  if (!confirm('¿Reiniciar la actividad? Se borrarán los participantes y el sorteo.')) return;
+  estado.participantes = [];
+  estado.asignaciones = [];
+  estado.revelados = 0;
+  estado.tension = 2; estado.fase = 0;
+  pausarReloj(); fijarReloj(5);
+  pintarTension(); pintarFases(); actualizarMarcador();
+  guardar();
+  mostrarUnoAUno();
+  $('#mensaje-registro').textContent = '';
+  irA('inicio');
+  avisar('⟲ Actividad reiniciada.');
+});
+$('#btn-inicio').addEventListener('click', () => { SONIDOS.clic(); irA('inicio'); });
+
+$('#btn-roles').addEventListener('click', abrirEditorRoles);
+$('#btn-cerrar-roles').addEventListener('click', cerrarEditorRoles);
+$('#modal-roles').addEventListener('click', e => { if (e.target.id === 'modal-roles') cerrarEditorRoles(); });
+$('#btn-nuevo-rol').addEventListener('click', () => {
+  rolesBorrador.push({ nombre: 'Nuevo rol', bando: 'gobierno', descripcion: '', secreto: '', sprite: spriteAleatorio('gobierno') });
+  pintarEditorRoles();
+  const filas = document.querySelectorAll('.fila-rol');
+  filas[filas.length - 1].querySelector('input').focus();
+});
+$('#btn-restaurar-roles').addEventListener('click', () => {
+  if (!confirm('¿Restaurar los roles originales? Se perderán tus cambios en los roles.')) return;
+  rolesBorrador = clonar(ROLES_POR_DEFECTO);
+  pintarEditorRoles();
+});
+$('#btn-guardar-roles').addEventListener('click', guardarRoles);
+
+// Botones de cabecera
+function pintarBotonSonido() {
+  $('#btn-sonido').textContent = estado.sonido ? '🔊' : '🔇';
+  $('#btn-sonido').setAttribute('aria-pressed', String(estado.sonido));
+}
+$('#btn-sonido').addEventListener('click', () => { estado.sonido = !estado.sonido; pintarBotonSonido(); guardar(); SONIDOS.clic(); });
+$('#btn-proyector').addEventListener('click', () => {
+  const activo = document.body.classList.toggle('proyector');
+  $('#btn-proyector').setAttribute('aria-pressed', String(activo));
+  avisar(activo ? '📽️ Modo proyector activado' : 'Modo proyector desactivado');
+});
+function pantallaCompleta() {
+  try {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  } catch (e) { avisar('Tu navegador no permite pantalla completa.'); }
+}
+$('#btn-pantalla').addEventListener('click', pantallaCompleta);
+$('#btn-panel').addEventListener('click', () => {
+  const sin = document.body.classList.toggle('sin-panel');
+  $('#btn-panel').setAttribute('aria-pressed', String(!sin));
+});
+
+// Panel lateral
+document.querySelectorAll('.presets [data-min]').forEach(b => b.addEventListener('click', () => fijarReloj(Number(b.dataset.min))));
+$('#btn-reloj').addEventListener('click', alternarReloj);
+$('#btn-reloj-reset').addEventListener('click', () => fijarReloj(reloj.total / 60));
+$('#btn-tension-mas').addEventListener('click', () => cambiarTension(1));
+$('#btn-tension-menos').addEventListener('click', () => cambiarTension(-1));
+$('#btn-carta').addEventListener('click', sacarCarta);
+$('#btn-fase').addEventListener('click', siguienteFase);
+$('#btn-escenario').addEventListener('click', sortearEscenario);
+$('#chk-crt').addEventListener('change', e => document.body.classList.toggle('crt', e.target.checked));
+$('#chk-secretos').addEventListener('change', () => {
+  if (estado.pantalla !== 'revelacion') return;
+  if (!$('#modo-mesa').classList.contains('oculto')) mostrarMesa(); else renderRevelacion();
+});
+
+// Atajos de teclado (no actúan mientras se escribe en un campo)
+document.addEventListener('keydown', e => {
+  const escribiendo = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if (e.key === 'Escape' && !$('#modal-roles').classList.contains('oculto')) { cerrarEditorRoles(); return; }
+  if (escribiendo || !$('#modal-roles').classList.contains('oculto') || !$('#overlay-sorteo').classList.contains('oculto')) return;
+  if (e.key === 'f' || e.key === 'F') { pantallaCompleta(); return; }
+  if (estado.pantalla !== 'revelacion' || $('#modo-uno-a-uno').classList.contains('oculto')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    // Evita "doble clic": si el foco está sobre un botón, Espacio ya lo activa
+    if (e.key === ' ' && document.activeElement.tagName === 'BUTTON') return;
+    e.preventDefault(); revelarSiguiente();
+  }
+  if ((e.key === 't' || e.key === 'T') && estado.revelados < estado.asignaciones.length) revelarTodo();
+});
+
+// Redibuja la portada al cambiar el tamaño (sprites más chicos en móvil)
+let temporizadorResize = null;
+window.addEventListener('resize', () => { clearTimeout(temporizadorResize); temporizadorResize = setTimeout(renderArena, 200); });
+
+/* =====================================================================
+   16. ARRANQUE
+   ===================================================================== */
+cargar();
+pintarBotonSonido();
+renderArena();
+pintarReloj();
+pintarTension();
+pintarFases();
+actualizarMarcador();
+irA('inicio');
+</script>
+</body>
+</html>
