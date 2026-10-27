@@ -526,6 +526,119 @@ body.proyector .ayuda, body.proyector .intro-texto { color: #dfe7fb; }
   .fila-rol .botones-fila { flex-direction: row; }
   .barra-pixel { max-width: 100%; }
 }
+/* =====================================================================
+   ACTA DE NEGOCIACIÓN: papel oficial con renglones, firmas y sello
+   ===================================================================== */
+.acta {
+  position: relative; overflow: hidden;
+  max-width: 1000px; margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.4rem);
+  background-color: #fdfaf0;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(20,33,61,.06) 31px 32px);
+  color: #1f1a10;
+  border: 4px solid #000; border-radius: 18px; box-shadow: 8px 8px 0 #000, var(--sombra);
+}
+.acta-cabecera { display: flex; align-items: center; gap: 1rem; border-bottom: 5px double var(--marino); padding-bottom: .8rem; margin-bottom: 1rem; }
+.acta-escudo {
+  width: 58px; height: 58px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 1.7rem;
+  background: var(--dorado); border: 3px solid #000; box-shadow: 3px 3px 0 #000;
+}
+.acta-pre { margin: 0; font-size: .8rem; letter-spacing: .15em; text-transform: uppercase; color: #5b5340; font-weight: 800; }
+.acta h2 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.6rem); color: var(--marino); font-weight: 900; line-height: 1.05; }
+.acta-numero {
+  margin-left: auto; font-family: var(--mono); font-weight: 900; color: #b91c1c; border: 2px solid #b91c1c;
+  padding: .2rem .5rem; border-radius: 6px; transform: rotate(3deg); white-space: nowrap;
+}
+.acta h3 {
+  display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap;
+  color: var(--marino); text-transform: uppercase; letter-spacing: .1em; font-size: 1rem;
+  margin: 1.5rem 0 .6rem; border-bottom: 2px solid var(--marino); padding-bottom: .2rem;
+}
+.acta h3 small { text-transform: none; letter-spacing: 0; font-weight: 700; color: #5b5340; }
+.acta-datos { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: .8rem; }
+.acta-datos label { display: flex; flex-direction: column; gap: .25rem; font-weight: 800; font-size: .85rem; color: #5b5340; }
+.acta input[type="text"], .acta input[type="date"], .acta textarea, .acta select {
+  background: #fff; color: #111; border: 2px solid var(--marino); border-radius: 8px; box-shadow: none;
+}
+.acta input:disabled, .acta textarea:disabled, .acta select:disabled { opacity: 1; color: #111; background: transparent; border-color: transparent; resize: none; }
+.acta textarea { min-height: 90px; }
+.acta .ayuda { color: #5b5340; }
+.acta-acuerdos { margin: 0; padding-left: 1.8rem; display: flex; flex-direction: column; gap: .55rem; font-weight: 700; }
+.acta-acuerdos li::marker { color: var(--marino); font-weight: 900; }
+.acta-acuerdos li.sin-numero { list-style: none; margin-left: -1.8rem; }
+.acuerdo { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.acuerdo input[type="text"] { flex: 1; min-width: 200px; width: auto; border-left-width: 8px; }
+.acuerdo select { width: auto; font-size: .95rem; padding: .45rem; }
+li[data-estado="acordado"] .acuerdo input { border-left-color: #16a34a; }
+li[data-estado="parcial"] .acuerdo input { border-left-color: #eab308; }
+li[data-estado="pendiente"] .acuerdo input { border-left-color: #9ca3af; }
+li[data-estado="rechazado"] .acuerdo input { border-left-color: #dc2626; }
+.acuerdo-texto { margin-right: .5rem; }
+.chip-estado { display: inline-block; font-size: .8rem; font-weight: 800; padding: .05rem .5rem; border-radius: 999px; border: 2px solid #000; white-space: nowrap; }
+.chip-estado.acordado { background: #bbf7d0; }
+.chip-estado.parcial { background: #fef08a; }
+.chip-estado.pendiente { background: #e5e7eb; }
+.chip-estado.rechazado { background: #fecaca; }
+.nuevo-acuerdo { margin-top: .7rem; }
+.nuevo-acuerdo input[type="text"] { flex: 1; min-width: 200px; width: auto; }
+.nuevo-acuerdo select { width: auto; }
+.vacio-acta { color: #6b6250; font-style: italic; font-weight: 500; }
+
+.firmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+.firma {
+  --color-osc: var(--gris-neutral-osc);
+  background: #fff; border: 2px dashed var(--marino); border-radius: 12px; padding: .6rem; text-align: center;
+}
+.firma.gobierno { --color-osc: var(--azul-gob-osc); }
+.firma.sindicato { --color-osc: var(--verde-sind-osc); }
+.firma.firmada { border-style: solid; border-color: #16a34a; box-shadow: 3px 3px 0 #16a34a; }
+.firma canvas {
+  display: block; width: 100%; height: 110px; touch-action: none; cursor: crosshair;
+  border-bottom: 2px solid var(--marino); background: linear-gradient(transparent 80%, rgba(20,33,61,.04));
+}
+.acta.sellada .firma canvas { cursor: default; }
+.firma-nombre { font-weight: 900; margin-top: .35rem; font-size: 1.05rem; }
+.firma-rol { font-size: .85rem; font-weight: 700; color: var(--color-osc); }
+.firma-estado { font-size: .8rem; color: #5b5340; margin-top: .2rem; }
+.firma.firmada .firma-estado { color: #15803d; font-weight: 800; }
+.firma .fila { justify-content: center; margin-top: .4rem; }
+.agregar-firmante { margin-top: .8rem; }
+.agregar-firmante select { width: auto; flex: 1; min-width: 200px; }
+
+/* Sello de goma que "cae" sobre el acta al cerrarla */
+.sello {
+  position: relative; z-index: 5; pointer-events: none;
+  width: fit-content; margin: 2rem auto 2.4rem;
+  transform: rotate(-6deg);
+  color: #15803d; border: 8px double currentColor; border-radius: 14px; padding: .4rem 1.4rem;
+  background: rgba(253,250,240,.55);
+  font-weight: 900; font-size: clamp(2rem, 7vw, 4.4rem); line-height: 1; letter-spacing: .06em; text-transform: uppercase; text-align: center;
+  opacity: .88; animation: sellar .55s cubic-bezier(.3,1.6,.5,1) both;
+}
+.sello small { display: block; font-size: .24em; letter-spacing: .12em; margin-top: .35rem; }
+.sello.desacuerdo { color: #b91c1c; }
+@keyframes sellar {
+  0% { opacity: 0; transform: rotate(-6deg) scale(3); }
+  100% { opacity: .88; transform: rotate(-6deg) scale(1); }
+}
+.acta.golpe { animation: sacudir .3s linear .35s 1; }
+
+/* Impresión / "Guardar como PDF": solo el acta, en blanco y negro limpio */
+@media print {
+  body { background: #fff !important; }
+  body.crt::after { display: none; }
+  .cabecera, .panel, .no-imprimir, .toast, #confeti, #pantalla-inicio, #pantalla-sorteo, #pantalla-revelacion { display: none !important; }
+  .distribucion { display: block; padding: 0; }
+  .acta { box-shadow: none; border: 2px solid #000; background-image: none; }
+  .acta input, .acta textarea, .acta select { border-color: transparent !important; appearance: none; -webkit-appearance: none; }
+  .sello { background: transparent; animation: none; }
+}
+
+@media (max-width: 760px) {
+  .acta-datos { grid-template-columns: 1fr; }
+  .acta-cabecera { flex-wrap: wrap; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
@@ -544,6 +657,7 @@ body.proyector .ayuda, body.proyector .intro-texto { color: #dfe7fb; }
   <div class="acciones">
     <button class="btn btn-chico btn-oro" id="btn-inicio" title="Volver a la pantalla de inicio (no borra nada)">🏠 Inicio</button>
     <button class="btn btn-chico" id="btn-roles" title="Ver y editar los roles">⚙️ Roles</button>
+    <button class="btn btn-chico" id="btn-acta" title="Acta de negociación: acuerdos y firmas">📝 Acta</button>
     <button class="btn btn-chico" id="btn-sonido" title="Activar/desactivar sonido" aria-pressed="true">🔊</button>
     <button class="btn btn-chico" id="btn-proyector" title="Modo proyector: letra más grande" aria-pressed="false">📽️</button>
     <button class="btn btn-chico" id="btn-pantalla" title="Pantalla completa (F)">⛶</button>
@@ -648,10 +762,70 @@ body.proyector .ayuda, body.proyector .intro-texto { color: #dfe7fb; }
       </div>
 
       <div class="controles-revelacion" style="margin-top:1.8rem;border-top:3px dashed #2c3c72;padding-top:1.2rem">
+        <button class="btn btn-oro" id="btn-ir-acta">📝 Redactar acta</button>
         <button class="btn btn-verde" id="btn-reasignar">🔁 Reasignar</button>
         <button class="btn btn-oscuro oculto" id="btn-ver-uno">🃏 Ver tarjetas una por una</button>
         <button class="btn btn-rojo" id="btn-reiniciar">⟲ Reiniciar actividad</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANTALLA 4: ACTA DE NEGOCIACIÓN ===================== -->
+  <section id="pantalla-acta" class="oculto" aria-labelledby="titulo-acta">
+    <article class="acta" id="acta">
+      <header class="acta-cabecera">
+        <div class="acta-escudo" aria-hidden="true">⚖️</div>
+        <div>
+          <p class="acta-pre">Mesa de Conciliación · Gobierno — Sindicato</p>
+          <h2 id="titulo-acta">Acta de Negociación Colectiva</h2>
+        </div>
+        <div class="acta-numero" id="acta-numero">N.º 000</div>
+      </header>
+
+      <div class="acta-datos">
+        <label>Caso / conflicto
+          <input type="text" id="acta-caso" maxlength="90" placeholder="Ej.: Docentes de Valle Alto">
+        </label>
+        <label>Fecha
+          <input type="date" id="acta-fecha">
+        </label>
+        <label>Lugar
+          <input type="text" id="acta-lugar" maxlength="60" placeholder="Ej.: Sala 204">
+        </label>
+      </div>
+
+      <h3>Acuerdos <small id="acta-resumen"></small></h3>
+      <ol class="acta-acuerdos" id="acta-acuerdos"></ol>
+      <div class="no-imprimir" id="acta-editar-acuerdos">
+        <div class="fila nuevo-acuerdo">
+          <input type="text" id="acta-nuevo" maxlength="200" placeholder="Ej.: Aumento salarial del 8% a partir de marzo" aria-label="Texto del nuevo acuerdo">
+          <select id="acta-nuevo-estado" aria-label="Estado del nuevo acuerdo"></select>
+          <button class="btn btn-verde btn-chico" id="btn-acta-agregar">+ Agregar</button>
+        </div>
+        <button class="btn btn-chico oculto" id="btn-acta-escenario" style="margin-top:.6rem">⤵ Cargar las demandas del escenario sorteado</button>
+      </div>
+
+      <h3>Observaciones</h3>
+      <textarea id="acta-obs" maxlength="1500" placeholder="Compromisos de seguimiento, plazos, quién vigila el cumplimiento, puntos que quedan para una próxima mesa…" aria-label="Observaciones"></textarea>
+
+      <div class="sello oculto" id="acta-sello" aria-live="polite"></div>
+
+      <h3>Firmas</h3>
+      <p class="ayuda no-imprimir" id="acta-ayuda-firmas">Cada firmante firma sobre la línea con el dedo, el lápiz o el mouse.</p>
+      <div class="firmas" id="acta-firmas"></div>
+      <div class="fila agregar-firmante no-imprimir" id="acta-agregar-firmante">
+        <select id="acta-sel-firmante" aria-label="Elegir firmante"></select>
+        <button class="btn btn-chico btn-azul" id="btn-acta-firmante">+ Agregar firmante</button>
+      </div>
+
+    </article>
+
+    <div class="controles-revelacion no-imprimir">
+      <button class="btn btn-oro btn-gigante" id="btn-acta-sellar">✍️ Cerrar y sellar acta</button>
+      <button class="btn btn-oscuro oculto" id="btn-acta-reabrir">🔓 Reabrir acta</button>
+      <button class="btn btn-azul" id="btn-acta-imprimir">🖨️ Imprimir / PDF</button>
+      <button class="btn" id="btn-acta-volver">↩ Volver</button>
+      <button class="btn btn-rojo btn-chico" id="btn-acta-nueva">🗑 Acta en blanco</button>
     </div>
   </section>
 </main>
@@ -1039,7 +1213,8 @@ const estado = {
   sonido: true,
   tension: 2,
   fase: 0,
-  mazoCartas: []
+  mazoCartas: [],
+  acta: actaVacia()      // acta de negociación (acuerdos + firmas)
 };
 
 function clonar(obj) { return JSON.parse(JSON.stringify(obj)); }
@@ -1048,7 +1223,7 @@ function clonar(obj) { return JSON.parse(JSON.stringify(obj)); }
 function guardar() {
   try {
     localStorage.setItem(CLAVE_ALMACEN, JSON.stringify({
-      participantes: estado.participantes, roles: estado.roles, sonido: estado.sonido
+      participantes: estado.participantes, roles: estado.roles, sonido: estado.sonido, acta: estado.acta
     }));
   } catch (e) { /* sin almacenamiento: la app sigue funcionando en memoria */ }
 }
@@ -1060,6 +1235,7 @@ function cargar() {
     if (Array.isArray(datos.participantes)) estado.participantes = datos.participantes.filter(n => typeof n === 'string').slice(0, MAX_PARTICIPANTES);
     if (Array.isArray(datos.roles) && datos.roles.length) estado.roles = datos.roles;
     if (typeof datos.sonido === 'boolean') estado.sonido = datos.sonido;
+    if (datos.acta && Array.isArray(datos.acta.acuerdos) && Array.isArray(datos.acta.firmantes)) estado.acta = Object.assign(actaVacia(), datos.acta);
   } catch (e) { /* datos corruptos o sin acceso: se usan los valores por defecto */ }
 }
 
@@ -1127,13 +1303,13 @@ function crear(etiqueta, clase, texto) {
   return el;
 }
 let temporizadorToast = null;
-function avisar(texto) {
+function avisar(texto, ms = 2600) {
   document.querySelectorAll('.toast').forEach(t => t.remove());
   const t = crear('div', 'toast', texto);
   t.setAttribute('role', 'status');
   document.body.appendChild(t);
   clearTimeout(temporizadorToast);
-  temporizadorToast = setTimeout(() => t.remove(), 2600);
+  temporizadorToast = setTimeout(() => t.remove(), ms);
 }
 const ETIQUETA_BANDO = { gobierno: 'Gobierno', sindicato: 'Sindicato', neutral: 'Neutral' };
 const ICONO_BANDO = { gobierno: '🏛️', sindicato: '✊', neutral: '⚖️' };
@@ -1141,13 +1317,14 @@ const ICONO_BANDO = { gobierno: '🏛️', sindicato: '✊', neutral: '⚖️' }
 /* =====================================================================
    7. NAVEGACIÓN ENTRE PANTALLAS
    ===================================================================== */
-const PANTALLAS = ['inicio', 'sorteo', 'revelacion'];
+const PANTALLAS = ['inicio', 'sorteo', 'revelacion', 'acta'];
 function irA(nombre) {
   PANTALLAS.forEach(p => $('#pantalla-' + p).classList.toggle('oculto', p !== nombre));
   estado.pantalla = nombre;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (nombre === 'inicio') renderInicio();
   if (nombre === 'sorteo') renderSorteo();
+  if (nombre === 'acta') renderActa();
 }
 
 /* =====================================================================
@@ -1346,6 +1523,7 @@ function asignarRoles() {
   // El orden de revelación también es aleatorio, para mantener el suspenso
   estado.asignaciones = fisherYates(pares);
   estado.revelados = 0;
+  if (!estado.acta.sellada) { estado.acta.firmantes = []; guardar(); }
   actualizarMarcador();
   animacionSorteo().then(() => {
     irA('revelacion');
@@ -1661,11 +1839,13 @@ function siguienteFase() {
 
 // --- Escenario ficticio ---
 let ultimoEscenario = -1;
+let escenarioActual = null; // se usa para precargar el acta
 function sortearEscenario() {
   let i;
   do { i = enteroAleatorio(ESCENARIOS.length); } while (ESCENARIOS.length > 1 && i === ultimoEscenario);
   ultimoEscenario = i;
   const e = ESCENARIOS[i];
+  escenarioActual = e;
   const cont = $('#texto-escenario');
   const ul = crear('ul');
   e.dem.forEach(d => ul.appendChild(crear('li', '', d)));
@@ -1676,6 +1856,7 @@ function sortearEscenario() {
     crear('p', 'nota', 'Caso y cifras ficticios, creados solo para el juego.')
   );
   SONIDOS.carta();
+  if (estado.pantalla === 'acta') renderActa();
 }
 
 /* =====================================================================
@@ -1769,6 +1950,343 @@ function guardarRoles() {
 }
 
 /* =====================================================================
+   14b. ACTA DE NEGOCIACIÓN
+   Los acuerdos se escriben durante la mesa; al final cada firmante firma
+   a mano alzada (canvas) y el acta se sella. Se guarda en el navegador.
+   ===================================================================== */
+const ESTADOS_ACUERDO = {
+  acordado: '✅ Acordado',
+  parcial: '🟡 Parcial',
+  pendiente: '⏳ Pendiente',
+  rechazado: '❌ Sin acuerdo'
+};
+
+function hoyISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function horaActual() {
+  return new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Acta nueva, sin acuerdos ni firmas. El número es solo decorativo. */
+function actaVacia() {
+  return {
+    numero: String(1 + enteroAleatorio(999)).padStart(3, '0'),
+    caso: '', fecha: hoyISO(), lugar: '', acuerdos: [], obs: '',
+    firmantes: [], sellada: false, resultado: '', selladaEn: ''
+  };
+}
+
+/** Propone un firmante por bando: el rol que aparece primero en la lista de roles. */
+function firmantesSugeridos() {
+  const posicion = rol => {
+    const i = estado.roles.findIndex(r => r.id === rol.id);
+    return (rol.relleno || i < 0) ? Infinity : i;
+  };
+  const sugeridos = [];
+  ['gobierno', 'neutral', 'sindicato'].forEach(bando => {
+    const candidato = estado.asignaciones
+      .filter(a => a.rol.bando === bando)
+      .sort((x, y) => posicion(x.rol) - posicion(y.rol))[0];
+    if (candidato) sugeridos.push(nuevoFirmante(candidato));
+  });
+  return sugeridos;
+}
+function nuevoFirmante(asig) {
+  return { nombre: asig.nombre, rol: asig.rol.nombre, bando: asig.rol.bando, firma: null, hora: '' };
+}
+
+/** Ajusta la altura del textarea a su contenido (también sirve al imprimir). */
+function autoAltura(area) {
+  area.style.height = 'auto';
+  area.style.height = Math.max(90, area.scrollHeight + 4) + 'px';
+}
+
+function renderActa() {
+  const acta = estado.acta;
+  const sellada = acta.sellada;
+  if (!sellada && !acta.firmantes.length && estado.asignaciones.length) {
+    acta.firmantes = firmantesSugeridos();
+    guardar();
+  }
+  $('#acta').classList.toggle('sellada', sellada);
+  $('#acta-numero').textContent = 'N.º ' + acta.numero;
+
+  // --- Datos generales ---
+  ['caso', 'fecha', 'lugar'].forEach(k => {
+    const campo = $('#acta-' + k);
+    campo.value = acta[k] || '';
+    campo.disabled = sellada;
+  });
+  const obs = $('#acta-obs');
+  obs.value = acta.obs || '';
+  obs.disabled = sellada;
+  obs.placeholder = sellada ? '' : obs.dataset.placeholder || obs.placeholder;
+  requestAnimationFrame(() => autoAltura(obs));
+
+  // --- Acuerdos ---
+  const ol = $('#acta-acuerdos');
+  ol.replaceChildren();
+  if (!acta.acuerdos.length) {
+    ol.appendChild(crear('li', 'sin-numero vacio-acta', sellada ? 'El acta no registra acuerdos.' : 'Aún no hay puntos en el acta. Escribe el primero abajo.'));
+  }
+  acta.acuerdos.forEach((ac, i) => {
+    const li = crear('li');
+    li.dataset.estado = ac.estado;
+    if (sellada) {
+      li.append(crear('span', 'acuerdo-texto', ac.texto), crear('span', 'chip-estado ' + ac.estado, ESTADOS_ACUERDO[ac.estado]));
+    } else {
+      const fila = crear('div', 'acuerdo');
+      const texto = crear('input');
+      texto.type = 'text'; texto.maxLength = 200; texto.value = ac.texto;
+      texto.setAttribute('aria-label', 'Acuerdo ' + (i + 1));
+      texto.addEventListener('input', () => { ac.texto = texto.value; guardar(); });
+      const sel = selectorEstado(ac.estado);
+      sel.setAttribute('aria-label', 'Estado del acuerdo ' + (i + 1));
+      sel.addEventListener('change', () => { ac.estado = sel.value; li.dataset.estado = sel.value; guardar(); pintarResumenActa(); });
+      const borrar = crear('button', 'btn btn-chico btn-rojo', '🗑');
+      borrar.setAttribute('aria-label', 'Eliminar acuerdo ' + (i + 1));
+      borrar.addEventListener('click', () => { acta.acuerdos.splice(i, 1); guardar(); renderActa(); SONIDOS.clic(); });
+      fila.append(texto, sel, borrar);
+      li.appendChild(fila);
+    }
+    ol.appendChild(li);
+  });
+  pintarResumenActa();
+  $('#acta-editar-acuerdos').classList.toggle('oculto', sellada);
+  $('#btn-acta-escenario').classList.toggle('oculto', !escenarioActual);
+
+  // --- Firmas ---
+  const firmas = $('#acta-firmas');
+  firmas.replaceChildren();
+  if (!acta.firmantes.length) {
+    firmas.appendChild(crear('p', 'vacio-acta', estado.asignaciones.length
+      ? 'No hay firmantes. Agrégalos abajo.'
+      : 'Primero sortea los roles: así sabremos quién firma por cada bando.'));
+  }
+  acta.firmantes.forEach((f, i) => firmas.appendChild(crearFirma(f, i)));
+  $('#acta-ayuda-firmas').classList.toggle('oculto', sellada);
+
+  // Selector para sumar más firmantes (cualquier participante sorteado)
+  const selFirmante = $('#acta-sel-firmante');
+  selFirmante.replaceChildren();
+  const disponibles = estado.asignaciones.filter(a => !acta.firmantes.some(f => f.nombre === a.nombre));
+  disponibles.forEach(a => {
+    const op = crear('option', '', `${a.nombre} — ${a.rol.nombre} (${ETIQUETA_BANDO[a.rol.bando]})`);
+    op.value = a.nombre;
+    selFirmante.appendChild(op);
+  });
+  $('#acta-agregar-firmante').classList.toggle('oculto', sellada || !disponibles.length);
+
+  // --- Sello y botones ---
+  const sello = $('#acta-sello');
+  if (sellada) {
+    const acuerdo = acta.resultado === 'acuerdo';
+    sello.className = 'sello' + (acuerdo ? '' : ' desacuerdo');
+    sello.replaceChildren(document.createTextNode(acuerdo ? 'Acuerdo firmado' : 'Sin acuerdo'), crear('small', '', 'Sellada · ' + acta.selladaEn));
+  } else {
+    sello.className = 'sello oculto';
+  }
+  $('#btn-acta-sellar').classList.toggle('oculto', sellada);
+  $('#btn-acta-reabrir').classList.toggle('oculto', !sellada);
+  $('#btn-acta-volver').textContent = estado.asignaciones.length ? '↩ Volver a la mesa' : '↩ Volver al inicio';
+}
+
+function selectorEstado(valor) {
+  const sel = crear('select');
+  Object.entries(ESTADOS_ACUERDO).forEach(([clave, texto]) => {
+    const op = crear('option', '', texto);
+    op.value = clave;
+    if (clave === valor) op.selected = true;
+    sel.appendChild(op);
+  });
+  return sel;
+}
+
+function pintarResumenActa() {
+  const c = { acordado: 0, parcial: 0, pendiente: 0, rechazado: 0 };
+  estado.acta.acuerdos.forEach(a => { if (c[a.estado] !== undefined) c[a.estado]++; });
+  $('#acta-resumen').textContent = estado.acta.acuerdos.length
+    ? [[c.acordado, 'acordado', 'acordados'], [c.parcial, 'parcial', 'parciales'], [c.pendiente, 'pendiente', 'pendientes'], [c.rechazado, 'sin acuerdo', 'sin acuerdo']]
+        .map(([n, uno, varios]) => `${n} ${n === 1 ? uno : varios}`).join(' · ')
+    : '';
+}
+
+/** Tarjeta de firma con un canvas donde se dibuja a mano alzada. */
+function crearFirma(f, i) {
+  const sellada = estado.acta.sellada;
+  const caja = crear('div', 'firma ' + f.bando + (f.firma ? ' firmada' : ''));
+  const lienzo = document.createElement('canvas');
+  lienzo.width = 600; lienzo.height = 220; // el doble del tamaño visible: trazo nítido
+  lienzo.setAttribute('role', 'img');
+  lienzo.setAttribute('aria-label', f.firma ? 'Firma de ' + f.nombre : 'Espacio para la firma de ' + f.nombre);
+  const ctx = lienzo.getContext('2d');
+  if (f.firma) {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0);
+    img.src = f.firma;
+  }
+  caja.appendChild(lienzo);
+  caja.appendChild(crear('div', 'firma-nombre', f.nombre));
+  caja.appendChild(crear('div', 'firma-rol', `${f.rol} · ${ETIQUETA_BANDO[f.bando] || ''}`));
+  const estadoFirma = crear('div', 'firma-estado', f.firma ? '✔ Firmado a las ' + f.hora : (sellada ? 'Sin firma' : 'Firme sobre la línea ✍️'));
+  caja.appendChild(estadoFirma);
+
+  if (!sellada) {
+    activarFirma(lienzo, f, caja, estadoFirma);
+    const botones = crear('div', 'fila no-imprimir');
+    const limpiar = crear('button', 'btn btn-chico', '↺ Borrar firma');
+    limpiar.addEventListener('click', () => {
+      ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+      f.firma = null; f.hora = '';
+      caja.classList.remove('firmada');
+      estadoFirma.textContent = 'Firme sobre la línea ✍️';
+      guardar();
+    });
+    const quitar = crear('button', 'btn btn-chico btn-rojo', '✕');
+    quitar.title = 'Quitar firmante';
+    quitar.setAttribute('aria-label', 'Quitar a ' + f.nombre + ' de los firmantes');
+    quitar.addEventListener('click', () => { estado.acta.firmantes.splice(i, 1); guardar(); renderActa(); });
+    botones.append(limpiar, quitar);
+    caja.appendChild(botones);
+  }
+  return caja;
+}
+
+/** Dibujo con mouse, dedo o lápiz (Pointer Events). */
+function activarFirma(lienzo, f, caja, estadoFirma) {
+  const ctx = lienzo.getContext('2d');
+  ctx.lineWidth = 4.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#14213d';
+  let dibujando = false;
+  const punto = e => {
+    const r = lienzo.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * lienzo.width / r.width, y: (e.clientY - r.top) * lienzo.height / r.height };
+  };
+  lienzo.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    dibujando = true;
+    try { lienzo.setPointerCapture(e.pointerId); } catch (err) { /* sin captura: igual funciona */ }
+    const p = punto(e);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + .1, p.y + .1); ctx.stroke();
+  });
+  lienzo.addEventListener('pointermove', e => {
+    if (!dibujando) return;
+    const p = punto(e);
+    ctx.lineTo(p.x, p.y); ctx.stroke();
+  });
+  const terminar = () => {
+    if (!dibujando) return;
+    dibujando = false;
+    f.firma = lienzo.toDataURL('image/png');
+    f.hora = horaActual();
+    caja.classList.add('firmada');
+    estadoFirma.textContent = '✔ Firmado a las ' + f.hora;
+    guardar();
+    tono(880, .05, 'square', .03);
+  };
+  lienzo.addEventListener('pointerup', terminar);
+  lienzo.addEventListener('pointercancel', terminar);
+}
+
+function agregarAcuerdo() {
+  const campo = $('#acta-nuevo');
+  const texto = campo.value.replace(/\s+/g, ' ').trim();
+  if (!texto) { avisar('⚠ Escribe el acuerdo primero.'); SONIDOS.error(); campo.focus(); return; }
+  estado.acta.acuerdos.push({ texto, estado: $('#acta-nuevo-estado').value });
+  campo.value = '';
+  guardar(); renderActa(); SONIDOS.moneda();
+  campo.focus();
+}
+
+/** Valida y sella: a partir de aquí el acta queda de solo lectura. */
+function sellarActa() {
+  const acta = estado.acta;
+  acta.acuerdos = acta.acuerdos.filter(a => a.texto.trim());
+  const faltas = [];
+  if (!acta.acuerdos.length) faltas.push('escribe al menos un punto');
+  ['gobierno', 'sindicato'].forEach(b => {
+    if (!acta.firmantes.some(f => f.bando === b)) faltas.push('falta un firmante del ' + ETIQUETA_BANDO[b]);
+  });
+  const sinFirma = acta.firmantes.filter(f => !f.firma).map(f => f.nombre);
+  if (sinFirma.length) faltas.push('falta la firma de ' + sinFirma.join(', '));
+  if (faltas.length) {
+    renderActa();
+    avisar('⚠ Para sellar el acta: ' + faltas.join(' · '), 5000);
+    SONIDOS.error();
+    return;
+  }
+  if (!confirm('¿Cerrar y sellar el acta? Ya no se podrá editar (salvo que la reabras).')) return;
+  acta.sellada = true;
+  acta.resultado = acta.acuerdos.some(a => a.estado === 'acordado' || a.estado === 'parcial') ? 'acuerdo' : 'desacuerdo';
+  acta.selladaEn = new Date().toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' });
+  guardar();
+  renderActa();
+  // ¡Golpe de sello!
+  const hoja = $('#acta');
+  hoja.classList.remove('golpe'); void hoja.offsetWidth; hoja.classList.add('golpe');
+  hoja.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  tono(90, .25, 'square', .12, .3);
+  estado.fase = FASES.length - 1; pintarFases();
+  if (acta.resultado === 'acuerdo') {
+    estado.tension = 0; pintarTension();
+    setTimeout(() => { SONIDOS.fanfarria(); lanzarConfeti(220); }, 450);
+  } else {
+    setTimeout(SONIDOS.error, 450);
+  }
+}
+
+function reabrirActa() {
+  if (!confirm('¿Reabrir el acta? Se borrarán las firmas, porque el contenido podría cambiar.')) return;
+  const acta = estado.acta;
+  acta.sellada = false; acta.resultado = ''; acta.selladaEn = '';
+  acta.firmantes.forEach(f => { f.firma = null; f.hora = ''; });
+  guardar(); renderActa();
+  avisar('🔓 Acta reabierta. Recuerden volver a firmar.');
+}
+
+// Selector de estado para el acuerdo nuevo
+$('#acta-nuevo-estado').replaceWith(Object.assign(selectorEstado('acordado'), { id: 'acta-nuevo-estado' }));
+$('#acta-nuevo-estado').setAttribute('aria-label', 'Estado del nuevo acuerdo');
+$('#acta-obs').dataset.placeholder = $('#acta-obs').placeholder;
+
+// Eventos del acta
+['caso', 'fecha', 'lugar'].forEach(k => $('#acta-' + k).addEventListener('input', e => { estado.acta[k] = e.target.value; guardar(); }));
+$('#acta-obs').addEventListener('input', e => { estado.acta.obs = e.target.value; autoAltura(e.target); guardar(); });
+$('#btn-acta-agregar').addEventListener('click', agregarAcuerdo);
+$('#acta-nuevo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregarAcuerdo(); } });
+$('#btn-acta-escenario').addEventListener('click', () => {
+  if (!escenarioActual) return;
+  const acta = estado.acta;
+  if (!acta.caso) acta.caso = escenarioActual.t;
+  escenarioActual.dem.forEach(d => {
+    if (!acta.acuerdos.some(a => a.texto === d)) acta.acuerdos.push({ texto: d, estado: 'pendiente' });
+  });
+  guardar(); renderActa(); SONIDOS.carta();
+  avisar('📜 Demandas cargadas como "pendientes": cambien su estado según lo que se acuerde.', 4000);
+});
+$('#btn-acta-firmante').addEventListener('click', () => {
+  const nombre = $('#acta-sel-firmante').value;
+  const asig = estado.asignaciones.find(a => a.nombre === nombre);
+  if (!asig) return;
+  estado.acta.firmantes.push(nuevoFirmante(asig));
+  guardar(); renderActa(); SONIDOS.clic();
+});
+$('#btn-acta-sellar').addEventListener('click', sellarActa);
+$('#btn-acta-reabrir').addEventListener('click', reabrirActa);
+$('#btn-acta-imprimir').addEventListener('click', () => window.print());
+$('#btn-acta-volver').addEventListener('click', () => {
+  if (estado.asignaciones.length) { irA('revelacion'); renderRevelacion(); } else irA('inicio');
+});
+$('#btn-acta-nueva').addEventListener('click', () => {
+  if (!confirm('¿Empezar un acta en blanco? Se borrarán los acuerdos y las firmas actuales.')) return;
+  estado.acta = actaVacia();
+  guardar(); renderActa();
+});
+$('#btn-acta').addEventListener('click', () => { SONIDOS.clic(); irA('acta'); });
+$('#btn-ir-acta').addEventListener('click', () => { SONIDOS.clic(); irA('acta'); });
+
+/* =====================================================================
    15. EVENTOS
    ===================================================================== */
 function agregarDesdeCampo() {
@@ -1816,6 +2334,7 @@ $('#btn-reiniciar').addEventListener('click', () => {
   estado.asignaciones = [];
   estado.revelados = 0;
   estado.tension = 2; estado.fase = 0;
+  estado.acta = actaVacia();
   pausarReloj(); fijarReloj(5);
   pintarTension(); pintarFases(); actualizarMarcador();
   guardar();
